@@ -2,754 +2,417 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JUNGLE PARANOIA: TRUE PIXEL EDITION</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RETRO DOOM GACHA : INFINITY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+KR:wght@700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
-
-        :root {
-            --bg-dark: #050805;
-            --bg-panel: #0d1a0d;
-            --jungle-green: #143314;
-            --blood-red: #8b0000;
-            --gold: #ffb800;
-            --text-main: #a3c2a3;
-            --border-light: #4d734d;
-            --pixel-size: 4px;
-        }
-
-        * {
-            box-sizing: border-box; margin: 0; padding: 0;
-            user-select: none; -webkit-user-select: none;
-            touch-action: none; /* 모바일 브라우저 기본 터치 방지 */
-        }
-
+        /* 전역 및 리셋 CSS */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'VT323', monospace;
-            overflow: hidden;
-            width: 100vw; height: 100vh;
-            image-rendering: pixelated;
+            background-color: #050505;
+            color: #33ff00;
+            font-family: 'Noto Sans KR', sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
         }
+        
+        /* 픽셀/레트로 폰트 */
+        .pixel-text { font-family: 'Press Start 2P', cursive; }
 
-        .pixel-font { font-family: 'Press Start 2P', cursive; }
-
-        /* CRT Effect */
+        /* CRT 모니터 스캔라인 효과 */
         .crt-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%), 
-                        linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
-            background-size: 100% 4px, 6px 100%;
-            z-index: 9999; pointer-events: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 9999;
         }
 
-        .screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            background: #000; z-index: 10;
+        /* 네비게이션 바 */
+        nav {
+            position: fixed;
+            top: 0; width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid #33ff00;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
         }
-        .screen.active { display: flex; }
-
-        .pixel-panel {
-            background-color: var(--bg-panel);
-            padding: 20px;
-            box-shadow: inset -4px -4px 0 #000, inset 4px 4px 0 var(--border-light), 0 0 0 4px #000;
-            image-rendering: pixelated;
+        .logo { font-size: 1.2rem; color: #ff003c; text-shadow: 2px 2px 0px #000; }
+        .nav-menu { display: flex; gap: 20px; align-items: center; }
+        .coin-display {
+            background: #111; border: 1px solid #ffcc00;
+            padding: 5px 15px; color: #ffcc00;
+            border-radius: 5px; font-weight: bold;
         }
-
-        .pixel-btn {
-            background-color: var(--jungle-green);
-            color: #fff;
-            font-family: 'Press Start 2P', cursive; font-size: 12px;
-            padding: 15px 20px; border: none; cursor: pointer;
-            box-shadow: inset -4px -4px 0 #081408, inset 4px 4px 0 #2a592a, 0 0 0 4px #000;
-            margin: 10px; text-transform: uppercase;
+        .btn-auth {
+            background: transparent; color: #fff;
+            border: 1px solid #fff; padding: 8px 15px;
+            cursor: pointer; transition: 0.3s;
+            font-family: 'Noto Sans KR', sans-serif; font-weight: bold;
         }
-        .pixel-btn:active { box-shadow: inset 4px 4px 0 #081408, inset -4px -4px 0 #2a592a, 0 0 0 4px #000; transform: scale(0.98); }
-        .pixel-btn.danger { background-color: var(--blood-red); box-shadow: inset -4px -4px 0 #4a0000, inset 4px 4px 0 #cc0000, 0 0 0 4px #000; }
+        .btn-auth:hover { background: #fff; color: #000; }
 
-        .pixel-input {
-            background: #000; border: none; color: #0f0;
-            font-family: 'VT323', monospace; font-size: 24px;
-            padding: 10px; width: 100%;
-            box-shadow: inset 4px 4px 0 #222, 0 0 0 4px var(--border-light);
-            outline: none; margin-bottom: 20px; text-align: center; text-transform: uppercase;
-        }
-
-        /* Lobby */
-        .title-text { font-size: 3rem; color: var(--blood-red); text-shadow: 4px 4px 0 #000; margin-bottom: 40px; text-align: center; }
-        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 20px; width: 90%; max-width: 400px; text-align: center; }
-        
-        /* QR Code */
-        #qr-container img {
-            width: 200px; height: 200px; border: 8px solid #fff; margin: 20px auto; display: block; image-rendering: pixelated;
+        /* 공통 섹션 스타일 (무한 스크롤 느낌) */
+        section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 100px 20px;
+            position: relative;
         }
 
-        /* Game UI */
-        #gameCanvas { display: block; width: 100vw; height: 100vh; image-rendering: pixelated; }
-        
-        .ui-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 20; padding: 10px;
-            display: flex; flex-direction: column; justify-content: space-between;
+        /* 첫 번째 로비 화면 */
+        #lobby {
+            background: radial-gradient(circle at center, #1a0000 0%, #000000 100%);
+            text-align: center;
+        }
+        .title-huge {
+            font-size: 4rem; color: #ff003c;
+            text-transform: uppercase;
+            text-shadow: 4px 4px 0px #550000, 0 0 20px #ff003c;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        .subtitle { font-size: 1.5rem; color: #ccc; margin-bottom: 50px; }
+        .btn-start {
+            background: #ff003c; color: #fff;
+            font-size: 1.5rem; padding: 15px 40px;
+            border: 4px solid #fff; cursor: pointer;
+            box-shadow: 0 0 15px #ff003c;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .btn-start:active { transform: scale(0.95); }
+        .scroll-indicator {
+            position: absolute; bottom: 30px;
+            font-size: 2rem; color: #fff;
+            animation: bounce 1s infinite;
         }
 
-        .hud-top { display: flex; justify-content: space-between; }
-        .hud-box {
-            background: rgba(0,0,0,0.8); border: 4px solid var(--border-light);
-            padding: 10px; color: #fff; pointer-events: auto;
+        /* 맵 선택 화면 (유사 3D 효과) */
+        #maps { background: #080808; border-top: 1px dashed #33ff00; }
+        .section-title { font-size: 2.5rem; margin-bottom: 40px; color: #fff; }
+        .map-grid {
+            display: flex; gap: 30px; perspective: 1000px;
+            max-width: 1200px; flex-wrap: wrap; justify-content: center;
         }
-
-        .water-bar-bg { width: 200px; height: 20px; background: #111; border: 4px solid #fff; margin-top: 5px; }
-        .water-bar-fill { width: 100%; height: 100%; background: #0055ff; transition: width 0.2s; }
-
-        /* Mobile Controls Overlay */
-        .mobile-controls {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 250px;
-            pointer-events: none; z-index: 30; display: flex; justify-content: space-between;
-            padding: 20px; align-items: flex-end;
+        .map-card {
+            width: 300px; height: 200px;
+            background: #222; border: 2px solid #555;
+            display: flex; flex-direction: column;
+            justify-content: flex-end; padding: 20px;
+            transform: rotateX(15deg); transition: 0.4s;
+            cursor: pointer; box-shadow: 0 20px 20px rgba(0,0,0,0.8);
+            background-size: cover; background-position: center;
         }
-
-        .joystick-base {
-            width: 150px; height: 150px; background: rgba(255,255,255,0.1);
-            border: 4px solid rgba(255,255,255,0.3); border-radius: 50%;
-            position: relative; pointer-events: auto;
+        .map-card:hover {
+            transform: rotateX(0deg) scale(1.05);
+            border-color: #33ff00; box-shadow: 0 0 20px #33ff00;
         }
-        .joystick-stick {
-            width: 60px; height: 60px; background: rgba(255,255,255,0.5);
+        .map-1 { background-image: linear-gradient(to top, #000, transparent), url('https://images.unsplash.com/photo-1616169584347-81498634351d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'); }
+        .map-2 { background-image: linear-gradient(to top, #000, transparent), url('https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'); }
+        .map-3 { background-image: linear-gradient(to top, #000, transparent), url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'); }
+
+        /* 상점 및 기능 화면 */
+        #shop { background: #000; border-top: 1px dashed #33ff00; }
+        .shop-container {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px; width: 100%; max-width: 1000px;
+        }
+        .item-box {
+            border: 1px solid #33ff00; padding: 20px; text-align: center;
+            background: rgba(51, 255, 0, 0.05); transition: 0.3s;
+        }
+        .item-box:hover { background: rgba(51, 255, 0, 0.2); }
+        .item-icon { font-size: 3rem; margin-bottom: 15px; }
+
+        /* 확률형 뽑기 시스템 화면 */
+        #gacha {
+            background: radial-gradient(circle at center, #001a33 0%, #000000 100%);
+            border-top: 1px dashed #33ff00;
+        }
+        .gacha-machine {
+            background: #111; border: 4px solid #00aaff;
+            padding: 50px; border-radius: 20px; text-align: center;
+            box-shadow: inset 0 0 50px #000, 0 0 30px #00aaff;
+            position: relative; z-index: 10;
+        }
+        .btn-pull {
+            background: linear-gradient(180deg, #ffcc00, #ff6600);
             border: 4px solid #fff; border-radius: 50%;
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 150px; height: 150px;
+            font-size: 1.5rem; font-weight: bold; color: #000;
+            cursor: pointer; margin-top: 30px;
+            box-shadow: 0 10px 0 #cc5200, 0 15px 20px rgba(0,0,0,0.5);
+            transition: 0.1s;
         }
-
-        .action-btns { display: flex; gap: 20px; pointer-events: auto; }
-        .action-btn {
-            width: 80px; height: 80px; background: rgba(20, 51, 20, 0.6);
-            border: 4px solid #0f0; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-family: 'Press Start 2P'; color: #fff; font-size: 10px; text-align: center;
+        .btn-pull:active {
+            transform: translateY(10px);
+            box-shadow: 0 0 0 #cc5200, 0 5px 10px rgba(0,0,0,0.5);
         }
-        .action-btn.kill { border-color: #f00; background: rgba(139, 0, 0, 0.6); display: none; }
-        .action-btn:active { background: rgba(255,255,255,0.5); }
-
-        .heatwave-fx {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,0,0,0.4); mix-blend-mode: color-burn;
-            pointer-events: none; z-index: 15; opacity: 0;
-        }
-        .heatwave-active { opacity: 1 !important; animation: flash 0.5s infinite alternate; }
-        @keyframes flash { from { background: rgba(255,0,0,0.3); } to { background: rgba(255,0,0,0.6); } }
-
-        .chat-box { width: 100%; max-width: 300px; height: 150px; display: flex; flex-direction: column; }
-        .chat-log { flex-grow: 1; overflow-y: auto; font-size: 16px; text-shadow: 2px 2px 0 #000; }
         
-        /* 반응형 */
-        @media (min-width: 768px) {
-            .mobile-controls { display: none; } /* PC에서는 가상 조이스틱 숨김 */
+        /* 결과 표시 창 */
+        #gacha-result {
+            margin-top: 30px; font-size: 2rem; min-height: 50px;
+            font-weight: bold; text-shadow: 0 0 10px #fff;
+            transition: all 0.5s; opacity: 0; transform: scale(0.5);
         }
+        .result-show { opacity: 1 !important; transform: scale(1) !important; }
+        
+        .rank-n { color: #aaaaaa; }
+        .rank-r { color: #00aaff; text-shadow: 0 0 15px #00aaff; }
+        .rank-sr { color: #ff00ff; text-shadow: 0 0 20px #ff00ff; }
+        .rank-ssr { color: #ffcc00; text-shadow: 0 0 30px #ffcc00; animation: blink 0.1s infinite; }
+
+        /* 파티클 캔버스 */
+        #particle-canvas {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: 5;
+        }
+
+        /* 애니메이션 */
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(15px); } }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
     </style>
 </head>
 <body>
-
     <div class="crt-overlay"></div>
 
-    <!-- 1. 메인 화면 -->
-    <div id="screen-main" class="screen active">
-        <h1 class="title-text pixel-font">JUNGLE PARANOIA<br><span style="font-size:1.5rem; color:#0f0;">PIXEL EDITION</span></h1>
-        
-        <div class="pixel-panel menu-grid">
-            <h2 class="pixel-font" style="font-size: 14px; margin-bottom: 20px;">LOBBY</h2>
-            <button class="pixel-btn" onclick="startSinglePlayer()">1 PLAYER (BOT MODE)</button>
-            <button class="pixel-btn" onclick="showMultiplayerMenu()">MULTIPLAYER</button>
-            <input type="text" id="inp-name" class="pixel-input" placeholder="NICKNAME" value="AGENT_001" style="margin-top:20px;">
+    <nav>
+        <div class="logo pixel-text">DOOM GACHA</div>
+        <div class="nav-menu">
+            <div class="coin-display pixel-text">COIN: <span id="coin-amount">10000</span></div>
+            <button class="btn-auth">로그인</button>
+            <button class="btn-auth">회원가입</button>
         </div>
-    </div>
+    </nav>
 
-    <!-- 2. 멀티플레이어 메뉴 -->
-    <div id="screen-multi" class="screen">
-        <div class="pixel-panel menu-grid">
-            <h2 class="pixel-font" style="font-size: 14px; margin-bottom: 20px;">NETWORK</h2>
-            <button class="pixel-btn danger" onclick="createRoom()">HOST ROOM (QR)</button>
-            <div style="margin: 20px 0; border-top: 2px dashed #444;"></div>
-            <input type="text" id="inp-code" class="pixel-input pixel-font" placeholder="ROOM CODE" maxlength="4">
-            <button class="pixel-btn" onclick="joinRoomBtn()">JOIN ROOM</button>
-            <button class="pixel-btn" onclick="switchScreen('screen-main')" style="background:#333; margin-top:20px;">BACK</button>
-        </div>
-    </div>
+    <!-- 섹션 1: 로비 및 시작 -->
+    <section id="lobby">
+        <h1 class="title-huge pixel-text">HELLGATE<br>OPENED</h1>
+        <p class="subtitle">궁극의 무기와 아티팩트를 수집하여 생존하라.</p>
+        <button class="btn-start pixel-text" onclick="scrollToSection('gacha')">지금 시작하기</button>
+        <div class="scroll-indicator pixel-text">▼</div>
+    </section>
 
-    <!-- 3. 대기실 (방 생성) -->
-    <div id="screen-room" class="screen">
-        <div class="pixel-panel" style="width:90%; max-width:600px; text-align:center;">
-            <h2 class="pixel-font">ROOM CODE</h2>
-            <h1 class="pixel-font" id="display-code" style="font-size:48px; color:#0ff; margin:20px 0;">XXXX</h1>
-            
-            <p>친구에게 아래 QR코드를 스캔하게 하세요.<br>스캔 시 즉시 접속됩니다.</p>
-            <div id="qr-container">
-                <img id="qr-img" src="" alt="QR Code">
+    <!-- 섹션 2: 맵 선택 -->
+    <section id="maps">
+        <h2 class="section-title pixel-text">SELECT MISSION MAP</h2>
+        <div class="map-grid">
+            <div class="map-card map-1">
+                <h3 class="pixel-text" style="color:#ff003c;">MARS BASE</h3>
+                <p>난이도: Normal</p>
             </div>
-            
-            <h3 class="pixel-font" style="margin:20px 0;">PLAYERS: <span id="player-count">1</span>/13</h3>
-            <ul id="player-list" style="list-style:none; font-size:20px; height:150px; overflow-y:auto; border:2px solid #555; padding:10px; text-align:left;">
-            </ul>
-            
-            <button class="pixel-btn danger" style="width:100%; padding:20px; font-size:16px;" onclick="startGame()">START MISSION</button>
-        </div>
-    </div>
-
-    <!-- 4. 게임 화면 -->
-    <div id="screen-game" class="screen">
-        <canvas id="gameCanvas"></canvas>
-        <div class="heatwave-fx" id="fx-heatwave"></div>
-        
-        <div class="ui-layer">
-            <div class="hud-top">
-                <div class="hud-box">
-                    <div class="pixel-font" style="font-size:10px; color:#aaa;">TIME / WEATHER</div>
-                    <div class="pixel-font" id="hud-time" style="font-size:20px; margin-top:5px; color:#fff;">12:00</div>
-                    <div class="pixel-font" id="hud-weather" style="font-size:10px; margin-top:5px; color:#0f0;">NORMAL</div>
-                </div>
-                
-                <div class="hud-box" style="text-align:center;">
-                    <div class="pixel-font" style="font-size:10px; color:#0ff;">GENERATOR</div>
-                    <div class="water-bar-bg"><div class="water-bar-fill" id="hud-water"></div></div>
-                </div>
-
-                <div class="hud-box" style="text-align:right;">
-                    <div class="pixel-font" style="font-size:10px; color:#aaa;">ROLE</div>
-                    <div class="pixel-font" id="hud-role" style="font-size:16px; margin-top:5px; color:#0f0;">AGENT</div>
-                </div>
+            <div class="map-card map-2">
+                <h3 class="pixel-text" style="color:#00aaff;">CYBER DUNGEON</h3>
+                <p>난이도: Hard</p>
             </div>
-
-            <!-- 모바일용 조이스틱 및 버튼 -->
-            <div class="mobile-controls" id="mobile-controls">
-                <div class="joystick-base" id="joystick">
-                    <div class="joystick-stick" id="stick"></div>
-                </div>
-                <div class="action-btns">
-                    <div class="action-btn" id="btn-interact">SPACE<br>(상호작용)</div>
-                    <div class="action-btn kill" id="btn-kill">F<br>(살해)</div>
-                </div>
-            </div>
-
-            <div class="hud-box chat-box" style="position: absolute; bottom: 10px; left: 10px; width: 300px; z-index: 25;">
-                <div class="chat-log" id="chat-log"></div>
-                <input type="text" id="chat-input" class="pixel-input" placeholder="> CHAT..." style="margin:0; font-size:16px; padding:5px;">
+            <div class="map-card map-3">
+                <h3 class="pixel-text" style="color:#ff00ff;">HELL'S CORE</h3>
+                <p>난이도: Nightmare</p>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- 섹션 3: 로비 상점 -->
+    <section id="shop">
+        <h2 class="section-title pixel-text">BLACK MARKET</h2>
+        <div class="shop-container">
+            <div class="item-box">
+                <div class="item-icon">💊</div>
+                <h3>메디킷 패키지</h3>
+                <p>500 COIN</p>
+            </div>
+            <div class="item-box">
+                <div class="item-icon">🛡️</div>
+                <h3>플라즈마 아머</h3>
+                <p>2500 COIN</p>
+            </div>
+            <div class="item-box">
+                <div class="item-icon">🔋</div>
+                <h3>에너지 셀 x10</h3>
+                <p>1000 COIN</p>
+            </div>
+            <div class="item-box">
+                <div class="item-icon">🗝️</div>
+                <h3>던전 마스터 키</h3>
+                <p>5000 COIN</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 섹션 4: 확률형 뽑기 시스템 -->
+    <section id="gacha">
+        <canvas id="particle-canvas"></canvas>
+        <h2 class="section-title pixel-text">WEAPON SUPPLY BOX</h2>
+        <div class="gacha-machine">
+            <p>1회 뽑기 : 1000 COIN</p>
+            <button class="btn-pull pixel-text" onclick="rollGacha()">PULL</button>
+            <div id="gacha-result" class="pixel-text">준비 완료...</div>
+        </div>
+    </section>
 
     <script>
-        // ==========================================
-        // UI & 네트워킹(시뮬레이션) 로직
-        // ==========================================
-        const $ = id => document.getElementById(id);
-        
-        let myName = "AGENT";
-        let roomCode = "";
-        let isSinglePlayer = false;
+        // 현재 소지 코인
+        let coins = 10000;
+        const coinDisplay = document.getElementById('coin-amount');
+        const resultDisplay = document.getElementById('gacha-result');
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
 
-        function switchScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            $(id).classList.add('active');
+        // 캔버스 사이즈 조절
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // 부드러운 스크롤 이동
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
         }
 
-        function showMultiplayerMenu() {
-            myName = $('inp-name').value || "AGENT";
-            switchScreen('screen-multi');
-        }
-
-        function startSinglePlayer() {
-            myName = $('inp-name').value || "AGENT";
-            isSinglePlayer = true;
-            startGame();
-        }
-
-        function generateCode() {
-            return Math.random().toString(36).substring(2, 6).toUpperCase();
-        }
-
-        function createRoom() {
-            isSinglePlayer = false;
-            roomCode = generateCode();
-            $('display-code').innerText = roomCode;
-            
-            // 실제 동작하는 QR 코드 생성 (현재 URL + ?room=코드)
-            const currentUrl = window.location.href.split('?')[0];
-            const joinUrl = currentUrl + "?room=" + roomCode;
-            $('qr-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(joinUrl);
-
-            updatePlayerList([{name: myName, ready: true}]);
-            switchScreen('screen-room');
-        }
-
-        function joinRoomBtn() {
-            const code = $('inp-code').value.toUpperCase();
-            if(code.length !== 4) { alert("4자리 코드를 입력하세요."); return; }
-            joinRoomLogic(code);
-        }
-
-        function joinRoomLogic(code) {
-            isSinglePlayer = false;
-            roomCode = code;
-            $('display-code').innerText = roomCode;
-            $('qr-img').src = ""; // 클라이언트 모드에선 QR 숨김
-            updatePlayerList([
-                {name: "HOST_PLAYER", ready: true},
-                {name: myName, ready: true}
-            ]);
-            switchScreen('screen-room');
-        }
-
-        function updatePlayerList(players) {
-            const list = $('player-list');
-            list.innerHTML = "";
-            players.forEach(p => {
-                list.innerHTML += `<li><span style="color:#0f0;">[READY]</span> ${p.name}</li>`;
-            });
-            $('player-count').innerText = players.length;
-        }
-
-        // 초기 로드 시 URL 파라미터 확인 (QR 스캔 자동 접속)
-        window.onload = () => {
-            const params = new URLSearchParams(window.location.search);
-            if(params.has('room')) {
-                const code = params.get('room');
-                $('inp-name').value = "SCANNER_" + Math.floor(Math.random()*100);
-                myName = $('inp-name').value;
-                joinRoomLogic(code);
-            }
-        };
-
-        // ==========================================
-        // 진짜 픽셀 렌더링 엔진 (Pure JS Pixel Drawing)
-        // ==========================================
-        
-        // 도트 스프라이트 데이터 (1=검은테두리, 2=메인색상, 3=피부/장식, 4=물통)
-        const SPRITE_HUMAN = [
-            [0,0,1,1,1,1,0,0],
-            [0,1,2,2,2,2,1,0],
-            [1,2,3,3,3,3,2,1], // 고글/피부
-            [1,2,2,2,2,2,2,1],
-            [0,1,1,1,1,1,1,0],
-            [1,2,2,2,2,2,2,1],
-            [1,2,1,1,1,1,2,1], // 팔/몸통
-            [1,2,1,2,2,1,2,1],
-            [0,1,1,2,2,1,1,0],
-            [0,0,1,2,2,1,0,0],
-            [0,1,1,0,0,1,1,0]  // 다리
+        // 아이템 풀 및 확률 설정 (가중치 방식)
+        const itemPool = [
+            { name: "녹슨 샷건", rank: "N", class: "rank-n", weight: 50 },
+            { name: "컴뱃 나이프", rank: "N", class: "rank-n", weight: 50 },
+            { name: "전술 소총", rank: "R", class: "rank-r", weight: 30 },
+            { name: "플라즈마 건", rank: "R", class: "rank-r", weight: 20 },
+            { name: "로켓 런처", rank: "SR", class: "rank-sr", weight: 8 },
+            { name: "체인건", rank: "SR", class: "rank-sr", weight: 5 },
+            { name: "BFG-9000", rank: "SSR", class: "rank-ssr", weight: 1.5 },
+            { name: "둠 슬레이어 검", rank: "SSR", class: "rank-ssr", weight: 0.5 }
         ];
 
-        const SPRITE_BEAST = [
-            [0,1,0,0,0,0,1,0],
-            [1,1,1,0,0,1,1,1],
-            [1,1,4,1,1,4,1,1], // 빨간 눈(4)
-            [1,1,1,1,1,1,1,1],
-            [0,1,1,1,1,1,1,0],
-            [1,1,3,3,3,3,1,1], // 이빨(3)
-            [1,1,1,1,1,1,1,1],
-            [1,1,0,1,1,0,1,1],
-            [1,1,0,1,1,0,1,1],
-            [1,1,0,1,1,0,1,1],
-            [0,1,1,0,0,1,1,0]
-        ];
-
-        // 픽셀 렌더링 헬퍼 함수
-        function drawSprite(ctx, sprite, px, py, scale, colorMap, dir, bob) {
-            ctx.save();
-            ctx.translate(px, py + bob);
-            ctx.scale(dir, 1); // 좌우 반전
+        // 웹 오디오 API를 이용한 레트로 효과음 생성
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSynthSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            const w = sprite[0].length;
-            const h = sprite.length;
-            const offsetX = -(w * scale) / 2;
-            const offsetY = -(h * scale); // 발밑 기준
-
-            for(let y = 0; y < h; y++) {
-                for(let x = 0; x < w; x++) {
-                    let val = sprite[y][x];
-                    if(val > 0) {
-                        ctx.fillStyle = colorMap[val];
-                        ctx.fillRect(offsetX + x*scale, offsetY + y*scale, scale, scale);
-                    }
-                }
-            }
-            ctx.restore();
-        }
-
-        // ==========================================
-        // 게임 상태 및 로직
-        // ==========================================
-        const cvs = $('gameCanvas');
-        const ctx = cvs.getContext('2d', { alpha: false });
-        let engineId, lastTime = 0;
-
-        let G = {
-            camX: 0, camY: 0, w: 0, h: 0,
-            mapW: 2000, mapH: 2000,
-            water: 100, time: 12 * 60,
-            heatwave: false, heatTimer: 0,
-            players: [], me: null, over: false,
-            keys: { w:0, a:0, s:0, d:0, space:0, f:0 },
-            joyX: 0, joyY: 0 // 조이스틱 입력 (-1.0 ~ 1.0)
-        };
-
-        const MAP = {
-            well: { x: 400, y: 1600, r: 80 },
-            gen: { x: 1000, y: 1000, r: 100 }
-        };
-
-        // 키보드 이벤트
-        window.addEventListener('keydown', e => {
-            if(e.target.tagName === 'INPUT') return;
-            let k = e.key.toLowerCase();
-            if(k===' ') G.keys.space = 1;
-            else if(G.keys.hasOwnProperty(k)) G.keys[k] = 1;
-        });
-        window.addEventListener('keyup', e => {
-            if(e.target.tagName === 'INPUT') return;
-            let k = e.key.toLowerCase();
-            if(k===' ') G.keys.space = 0;
-            else if(G.keys.hasOwnProperty(k)) G.keys[k] = 0;
-        });
-
-        // ==========================================
-        // 모바일 조이스틱 이벤트 설정
-        // ==========================================
-        const joyBase = $('joystick');
-        const joyStick = $('stick');
-        let joyActive = false;
-        let joyCenter = {x:0, y:0};
-
-        joyBase.addEventListener('touchstart', e => {
-            joyActive = true;
-            let rect = joyBase.getBoundingClientRect();
-            joyCenter = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
-            handleJoy(e.touches[0]);
-        });
-        joyBase.addEventListener('touchmove', e => {
-            if(joyActive) handleJoy(e.touches[0]);
-        });
-        joyBase.addEventListener('touchend', e => {
-            joyActive = false;
-            joyStick.style.transform = `translate(-50%, -50%)`;
-            G.joyX = 0; G.joyY = 0;
-        });
-
-        function handleJoy(touch) {
-            let dx = touch.clientX - joyCenter.x;
-            let dy = touch.clientY - joyCenter.y;
-            let maxDist = 50; // 스틱 최대 이동 반경
-            let dist = Math.hypot(dx, dy);
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
             
-            if(dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; }
+            osc.type = 'square';
+            const now = audioCtx.currentTime;
             
-            joyStick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-            
-            // 정규화된 방향 벡터 (-1.0 ~ 1.0)
-            G.joyX = dx / maxDist;
-            G.joyY = dy / maxDist;
-        }
-
-        $('btn-interact').addEventListener('touchstart', () => G.keys.space = 1);$('btn-interact').addEventListener('touchend', () => G.keys.space = 0);
-        $('btn-kill').addEventListener('touchstart', () => G.keys.f = 1);$('btn-kill').addEventListener('touchend', () => G.keys.f = 0);
-
-        // 창 크기 조절
-        function resize() {
-            cvs.width = window.innerWidth;
-            cvs.height = window.innerHeight;
-            G.w = cvs.width; G.h = cvs.height;
-            ctx.imageSmoothingEnabled = false;
-        }
-        window.addEventListener('resize', resize);
-
-        class Entity {
-            constructor(x, y, isMe, role, name) {
-                this.x = x; this.y = y;
-                this.isMe = isMe;
-                this.role = role;
-                this.name = name;
-                this.speed = role === 'monster' ? 250 : 180;
-                this.hasWater = false;
-                this.alive = true;
-                this.anim = 0;
-                this.dir = 1;
-                this.colorMap = role === 'monster' 
-                    ? { 1:"#000", 2:"#222", 3:"#fff", 4:"#f00" } // 괴물 색상
-                    : { 1:"#000", 2: isMe?"#0055ff":"#555", 3:"#ffccaa", 4:"#0ff" }; // 인간 색상
-            }
-
-            update(dt) {
-                if(!this.alive) return;
-                let dx = 0, dy = 0;
-
-                if(this.isMe) {
-                    // 키보드 입력 우선
-                    if(G.keys.a) dx = -1; if(G.keys.d) dx = 1;
-                    if(G.keys.w) dy = -1; if(G.keys.s) dy = 1;
-                    
-                    // 조이스틱 입력 합산
-                    if(dx === 0 && dy === 0) {
-                        dx = G.joyX; dy = G.joyY;
-                    } else {
-                        let len = Math.hypot(dx, dy);
-                        dx /= len; dy /= len;
-                    }
-
-                    if(Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
-                        this.anim += dt * 15;
-                        if(dx < -0.1) this.dir = -1;
-                        if(dx > 0.1) this.dir = 1;
-                    } else {
-                        this.anim = 0;
-                    }
-
-                    this.x += dx * this.speed * dt;
-                    this.y += dy * this.speed * dt;
-
-                    // 맵 경계 제한
-                    this.x = Math.max(30, Math.min(G.mapW-30, this.x));
-                    this.y = Math.max(30, Math.min(G.mapH-30, this.y));
-
-                    this.handleActions();
-                } else {
-                    // AI 봇 로직 (싱글플레이 전용)
-                    if(this.role === 'monster') {
-                        if(G.heatwave) {
-                            let target = G.players.find(p => p.role !== 'monster' && p.alive);
-                            if(target) {
-                                let dist = Math.hypot(target.x-this.x, target.y-this.y);
-                                if(dist > 20) {
-                                    this.x += ((target.x-this.x)/dist) * this.speed * 1.5 * dt;
-                                    this.y += ((target.y-this.y)/dist) * this.speed * 1.5 * dt;
-                                    this.anim += dt * 20;
-                                    this.dir = (target.x-this.x) < 0 ? -1 : 1;
-                                }
-                                if(dist < 40) target.alive = false; // Kill
-                            }
-                        }
-                    } else {
-                        // 시민 봇
-                        let tx = this.hasWater ? MAP.gen.x : MAP.well.x;
-                        let ty = this.hasWater ? MAP.gen.y : MAP.well.y;
-                        let dist = Math.hypot(tx-this.x, ty-this.y);
-                        
-                        if(dist > 20) {
-                            this.x += ((tx-this.x)/dist) * this.speed * dt;
-                            this.y += ((ty-this.y)/dist) * this.speed * dt;
-                            this.anim += dt * 15;
-                            this.dir = (tx-this.x) < 0 ? -1 : 1;
-                        } else {
-                            if(!this.hasWater) this.hasWater = true;
-                            else { this.hasWater = false; G.water = Math.min(100, G.water+5); }
-                        }
-                    }
-                }
-            }
-
-            handleActions() {
-                let distWell = Math.hypot(this.x - MAP.well.x, this.y - MAP.well.y);
-                let distGen = Math.hypot(this.x - MAP.gen.x, this.y - MAP.gen.y);
-
-                if(distWell < MAP.well.r + 30 && G.keys.space && !this.hasWater) {
-                    this.hasWater = true; G.keys.space = 0; addChat("물 획득!");
-                }
-                if(distGen < MAP.gen.r + 30 && G.keys.space && this.hasWater) {
-                    this.hasWater = false; G.water = Math.min(100, G.water+15); G.keys.space = 0; addChat("물 보충!");
-                }
-
-                if(this.role === 'monster' && G.keys.f) {
-                    G.players.forEach(p => {
-                        if(!p.isMe && p.alive && Math.hypot(p.x-this.x, p.y-this.y) < 60) {
-                            p.alive = false; addChat("대상을 살해했습니다.", "#f00");
-                        }
-                    });
-                    G.keys.f = 0;
-                }
-            }
-
-            draw(ctx) {
-                let px = Math.floor(this.x - G.camX);
-                let py = Math.floor(this.y - G.camY);
-
-                if(!this.alive) {
-                    // 시체 렌더링
-                    ctx.fillStyle = "#8b0000"; ctx.fillRect(px-15, py-10, 30, 10);
-                    ctx.fillStyle = "#330000"; ctx.fillRect(px-10, py-5, 20, 5);
-                    return;
-                }
-
-                let bob = Math.floor(Math.sin(this.anim) * 4); // 걷기 바운스 (정수 픽셀)
-                let showBeast = this.role === 'monster' && (this.isMe || G.heatwave);
-                
-                let sprite = showBeast ? SPRITE_BEAST : SPRITE_HUMAN;
-                let scale = showBeast ? 6 : 5; // 괴물이 약간 더 큼
-
-                // 물통이 있으면 등(좌측/우측)에 파란 픽셀 추가 렌더링
-                if(!showBeast && this.hasWater) {
-                    ctx.fillStyle = "#0ff";
-                    let wOff = this.dir === 1 ? -15 : 5;
-                    ctx.fillRect(px + wOff, py + bob - 30, 10, 15);
-                }
-
-                drawSprite(ctx, sprite, px, py, scale, this.colorMap, this.dir, bob);
-
-                // 이름표
-                ctx.fillStyle = "#fff";
-                ctx.font = "12px 'VT323'"; ctx.textAlign = "center";
-                ctx.fillText(this.name, px, py - (scale*10) - 10);
-            }
-        }
-
-        function addChat(msg, col="#fff") {
-            const box = $('chat-log');
-            box.innerHTML += `<div style="color:${col};">${msg}</div>`;
-            box.scrollTop = box.scrollHeight;
-        }
-
-        $('chat-input').addEventListener('keypress', function(e) {
-            if(e.key === 'Enter') {
-                if(G.heatwave) return;
-                const v = this.value.trim();
-                if(v) { addChat(`[${myName}] ${v}`); this.value = ""; }
-            }
-        });
-
-        function startGame() {
-            resize();
-            switchScreen('screen-game');
-            
-            G.water = 100; G.time = 12 * 60; G.heatwave = false; G.over = false; G.players = [];
-            $('chat-log').innerHTML = "<div style='color:#0f0'>시스템: 사원에 진입했습니다.</div>";
-
-            // 직업 분배
-            let totalPlayers = isSinglePlayer ? 13 : 2; // 멀티는 2명으로 시뮬레이션
-            let roles = Array(totalPlayers-1).fill('citizen');
-            roles.push('monster');
-            roles.sort(() => Math.random() - 0.5);
-
-            G.me = new Entity(1000, 1200, true, roles[0], myName);
-            G.players.push(G.me);
-
-            for(let i=1; i<totalPlayers; i++) {
-                G.players.push(new Entity(
-                    1000 + (Math.random()-0.5)*400, 
-                    1200 + (Math.random()-0.5)*400, 
-                    false, roles[i], "AGENT_"+i
-                ));
-            }
-
-            // UI 셋업
-            let isMonster = G.me.role === 'monster';
-            $('hud-role').innerText = isMonster ? 'THE 13TH' : 'AGENT';
-            $('hud-role').style.color = isMonster ? '#f00' : '#0f0';
-            $('btn-kill').style.display = isMonster ? 'flex' : 'none';
-
-            lastTime = performance.now();
-            engineId = requestAnimationFrame(loop);
-            G.tickInterval = setInterval(gameTick, 1000);
-        }
-
-        function gameTick() {
-            if(G.over) return;
-            G.time--;
-            
-            let m = Math.floor(G.time/60).toString().padStart(2,'0');
-            let s = (G.time%60).toString().padStart(2,'0');
-            $('hud-time').innerText = `${m}:${s}`;
-
-            G.water -= 0.5;
-            $('hud-water').style.width = Math.max(0, G.water) + '\%';$('hud-water').style.background = G.water < 30 ? "#f00" : "#0055ff";
-
-            if(!G.heatwave) {
-                if(Math.random() < 0.05 && G.time < 11*60) {
-                    G.heatwave = true; G.heatTimer = 20;
-                    $('fx-heatwave').classList.add('heatwave-active');$('hud-weather').innerText = "EXTREME HEAT";
-                    $('hud-weather').style.color = "#f00";
-                    $('chat-input').disabled = true;
-                    addChat("폭염으로 통신이 끊겼습니다!", "#f00");
-                }
+            if (type === 'pull') {
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.2);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'ssr') {
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.setValueAtTime(600, now + 0.1);
+                osc.frequency.setValueAtTime(800, now + 0.2);
+                osc.frequency.setValueAtTime(1200, now + 0.3);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.linearRampToValueAtTime(0, now + 1.0);
+                osc.start(now); osc.stop(now + 1.0);
             } else {
-                G.heatTimer--;
-                if(G.heatTimer <= 0) {
-                    G.heatwave = false;
-                    $('fx-heatwave').classList.remove('heatwave-active');$('hud-weather').innerText = "NORMAL";
-                    $('hud-weather').style.color = "#0f0";
-                    $('chat-input').disabled = false;
-                    addChat("통신이 복구되었습니다.", "#0f0");
-                }
+                osc.frequency.setValueAtTime(400, now);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
             }
-
-            if(G.water <= 0) endGame(false, "물 고갈. 전멸.");
-            if(G.time <= 0) endGame(true, "구조대 도착. 생존!");
-            if(!G.players.some(p => p.role !== 'monster' && p.alive)) endGame(false, "전원 사망. 괴물 승리.");
-            if(!G.me.alive) endGame(false, "사망했습니다.");
         }
 
-        function endGame(win, msg) {
-            G.over = true;
-            clearInterval(G.tickInterval);
-            cancelAnimationFrame(engineId);
+        // 파티클 시스템 (엄청난 이펙트 구현)
+        let particles = [];
+        function createExplosion(color) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2 + 100; // 뽑기 버튼 근처
+            for (let i = 0; i < 150; i++) {
+                particles.push({
+                    x: centerX, y: centerY,
+                    vx: (Math.random() - 0.5) * 30,
+                    vy: (Math.random() - 0.5) * 30,
+                    life: 1.0,
+                    color: color,
+                    size: Math.random() * 8 + 2
+                });
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                p.life -= 0.02;
+                p.size *= 0.95;
+                
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size); // 픽셀 느낌을 위해 사각형 사용
+                
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // 뽑기 메인 로직
+        function rollGacha() {
+            if (coins < 1000) {
+                alert("코인이 부족합니다!");
+                return;
+            }
+            
+            // 코인 차감 및 사운드 재생
+            coins -= 1000;
+            coinDisplay.innerText = coins;
+            playSynthSound('pull');
+            
+            resultDisplay.classList.remove('result-show');
+            resultDisplay.innerHTML = "SYSTEM HACKING...";
+            resultDisplay.className = "pixel-text";
+            
+            // 시각적 딜레이 후 결과 발표
             setTimeout(() => {
-                alert(`게임 오버: ${msg}`);
-                switchScreen('screen-main');
-            }, 1000);
-        }
-
-        // ==========================================
-        // 렌더링 루프
-        // ==========================================
-        function loop(time) {
-            if(G.over) return;
-            let dt = (time - lastTime) / 1000;
-            lastTime = time;
-            if(dt > 0.1) dt = 0.1;
-
-            G.players.forEach(p => p.update(dt));
-
-            G.camX = Math.floor(G.me.x - G.w/2);
-            G.camY = Math.floor(G.me.y - G.h/2);
-
-            // 배경 클리어
-            ctx.fillStyle = "#050805";
-            ctx.fillRect(0, 0, G.w, G.h);
-
-            ctx.save();
-            ctx.translate(-G.camX, -G.camY);
-
-            // 체크보드 바닥 렌더링 (픽셀 질감)
-            ctx.fillStyle = "#0a140a";
-            for(let x=0; x<G.mapW; x+=100) {
-                for(let y=0; y<G.mapH; y+=100) {
-                    if((x/100 + y/100) % 2 === 0) ctx.fillRect(x, y, 100, 100);
+                let totalWeight = itemPool.reduce((sum, item) => sum + item.weight, 0);
+                let randomNum = Math.random() * totalWeight;
+                let selectedItem = null;
+                
+                for (let item of itemPool) {
+                    if (randomNum < item.weight) {
+                        selectedItem = item;
+                        break;
+                    }
+                    randomNum -= item.weight;
                 }
-            }
-
-            // 우물 (픽셀 박스 형태)
-            ctx.fillStyle = "#222"; ctx.fillRect(MAP.well.x-50, MAP.well.y-50, 100, 100);
-            ctx.fillStyle = "#0055ff"; ctx.fillRect(MAP.well.x-40, MAP.well.y-40, 80, 80);
-            ctx.fillStyle = "#fff"; ctx.font="16px 'VT323'"; ctx.fillText("WELL", MAP.well.x-15, MAP.well.y-60);
-
-            // 발전기 (기계 형태)
-            ctx.fillStyle = "#333"; ctx.fillRect(MAP.gen.x-60, MAP.gen.y-60, 120, 120);
-            ctx.fillStyle = G.water > 0 ? (Math.random()>0.5?"#0ff":"#00a") : "#f00";
-            ctx.fillRect(MAP.gen.x-20, MAP.gen.y-20, 40, 40); // 코어 점멸
-            ctx.fillStyle = "#fff"; ctx.fillText("CORE", MAP.gen.x-15, MAP.gen.y-70);
-
-            // 엔티티 렌더링 (Y축 정렬)
-            G.players.sort((a,b) => a.y - b.y).forEach(p => p.draw(ctx));
-
-            // 시야 제한 (폭염 시 매우 좁아짐)
-            let viewDist = G.heatwave ? 200 : 500;
-            ctx.globalCompositeOperation = 'destination-in';
-            let grad = ctx.createRadialGradient(G.me.x, G.me.y, 50, G.me.x, G.me.y, viewDist);
-            grad.addColorStop(0, "rgba(0,0,0,1)");
-            grad.addColorStop(1, "rgba(0,0,0,0)");
-            ctx.fillStyle = grad;
-            ctx.fillRect(G.camX, G.camY, G.w, G.h);
-            ctx.globalCompositeOperation = 'source-over';
-
-            ctx.restore();
-            engineId = requestAnimationFrame(loop);
+                
+                // 결과 UI 업데이트
+                resultDisplay.innerHTML = `[${selectedItem.rank}] ${selectedItem.name}`;
+                resultDisplay.className = `pixel-text result-show ${selectedItem.class}`;
+                
+                // 등급별 이펙트 및 사운드 분기
+                if (selectedItem.rank === 'SSR') {
+                    playSynthSound('ssr');
+                    createExplosion('#ffcc00'); // 황금색 폭발
+                    createExplosion('#ffffff');
+                } else if (selectedItem.rank === 'SR') {
+                    playSynthSound('normal');
+                    createExplosion('#ff00ff'); // 마젠타 폭발
+                } else if (selectedItem.rank === 'R') {
+                    playSynthSound('normal');
+                    createExplosion('#00aaff'); // 파란색 폭발
+                }
+                
+            }, 800);
         }
     </script>
 </body>
