@@ -26,7 +26,7 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        
+
         @keyframes ambientBG {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -69,7 +69,7 @@
         .btn-super:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 15px 30px rgba(79, 172, 254, 0.5); }
         .btn-super:hover::after { left: 150%; }
         .btn-super:active { transform: translateY(2px) scale(0.98); }
-        
+
         .btn-super.red { background: linear-gradient(135deg, var(--accent) 0%, #ffb199 100%); box-shadow: 0 10px 20px rgba(255, 8, 68, 0.3); }
         .btn-super.gold { background: linear-gradient(135deg, var(--gold) 0%, #fda085 100%); color: #000; box-shadow: 0 10px 20px rgba(246, 211, 101, 0.3); }
         .btn-super.purple { background: linear-gradient(135deg, var(--purple) 0%, #fa709a 100%); box-shadow: 0 10px 20px rgba(179, 0, 255, 0.3); }
@@ -85,7 +85,7 @@
         input.input-modern:focus { border-color: var(--primary); background: rgba(0,0,0,0.6); box-shadow: 0 0 20px rgba(0, 242, 254, 0.2); }
 
         /* 알림창 (반응형 대응) */
-        #toast-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 10000; pointer-events: none; width: calc(100% - 60px); max-width: 420px; }
+        #toast-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 10000; pointer-events: none; width: calc(100% - 60px); max-width: 400px; }
         .toast {
             background: rgba(15, 17, 26, 0.9); border-left: 6px solid var(--primary);
             border-radius: 20px; padding: 18px 24px; font-weight: 800; font-family: var(--font-kr);
@@ -104,7 +104,7 @@
         }
 
         #dashboard-view { display: none; width: 100vw; height: 100vh; flex-direction: column; position: relative; }
-        
+
         header {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             display: flex; justify-content: space-between; align-items: center;
@@ -113,7 +113,7 @@
             border-radius: 999px; z-index: 500; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
             width: calc(100% - 40px); max-width: 1000px;
         }
-        
+
         .nav-tabs { display: flex; gap: 5px; flex-wrap: wrap; }
         .tab-btn {
             background: transparent; color: #888; border: none;
@@ -122,7 +122,7 @@
         }
         .tab-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
         .tab-btn.active { background: #fff; color: #000; box-shadow: 0 5px 15px rgba(255,255,255,0.3); }
-        
+
         .hud-coin {
             background: linear-gradient(135deg, var(--gold), #fda085); color: #000;
             border-radius: 999px; padding: 8px 16px; font-weight: 900; font-family: var(--font-en);
@@ -134,13 +134,12 @@
         .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .title-text { font-family: var(--font-en); font-size: 2rem; margin-bottom: 25px; text-align: center; color: #fff; font-weight: 900; letter-spacing: 2px; text-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .title-text { font-family: var(--font-en); font-size: 2rem; margin-bottom: 25px; text-align: center; color: #fff; font-weight: 900; letter-spacing: 2px; text-shadow: 0 10px 20px rgba(0,0,0,0.8); }
         .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
 
         /* ==========================================================================
            [3] 각 탭별 특화 스타일
            ========================================================================== */
-        /* 인벤토리 */
         .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; max-height: 50vh; overflow-y: auto; padding-right: 5px; }
         .inv-item {
             background: rgba(0,0,0,0.4); border: 2px solid transparent; border-radius: 20px;
@@ -151,7 +150,6 @@
         .inv-item.equipped { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 242, 254, 0.4); background: rgba(0, 242, 254, 0.1); }
         .inv-item svg { width: 70%; height: 70%; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.8)); transition: 0.3s; }
 
-        /* 스킬트리 (CYBERNETICS) */
         .skill-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; position: relative; }
         .skill-node {
             display: flex; flex-direction: column; align-items: center; text-align: center;
@@ -163,19 +161,17 @@
         .skill-icon { font-size: 3rem; margin-bottom: 15px; filter: drop-shadow(0 0 10px currentColor); }
         .skill-level { position: absolute; top: 15px; right: 20px; font-family: var(--font-en); font-weight: 900; color: #fff; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 999px; }
 
-        /* [핵심 픽스] 가챠 탭 구조 (버튼 절대 겹침 금지) */
         .gacha-wrapper { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; min-height: 60vh; }
         .gacha-stage {
             position: relative; width: 100%; max-width: 600px; flex: 1; min-height: 350px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             border-radius: 40px; overflow: hidden; margin-bottom: 30px;
         }
-        
+
         #gacha-vfx { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
         #roulette-svg-container { z-index: 5; width: 180px; height: 180px; display: flex; justify-content: center; align-items: center; opacity: 0; transform: scale(0.5); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .gacha-name { font-size: 1.8rem; font-weight: 900; margin-top: 20px; opacity: 0; z-index: 5; text-shadow: 0 10px 20px rgba(0,0,0,0.8); text-align: center; pointer-events: none; word-break: keep-all; }
 
-        /* 맥박 효과 버튼 */
         @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(255, 8, 68, 0.5); } 70% { box-shadow: 0 0 0 20px rgba(255, 8, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 8, 68, 0); } }
         .btn-pull-epic {
             background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
@@ -190,18 +186,19 @@
            ========================================================================== */
         #game-view { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 5000; flex-direction: column; }
         #game-canvas { width: 100%; height: 100%; object-fit: cover; cursor: crosshair; }
-        
+
         .crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.6); border-radius: 50%; pointer-events: none; }
         .crosshair::after { content:''; position:absolute; top:7px; left:7px; width:4px; height:4px; background:var(--accent); border-radius:50%; }
-        
+
         .hud-overlay { position: absolute; bottom: 30px; left: 30px; pointer-events: none; width: calc(100% - 60px); max-width: 400px; }
         .hp-bar-bg { width: 100%; height: 16px; background: rgba(0,0,0,0.8); border-radius: 999px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
         .hp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); width: 100%; transition: width 0.3s; }
-        
-        #weapon-overlay { position: absolute; bottom: -5%; right: 5%; width: 40vh; height: 40vh; pointer-events: none; filter: drop-shadow(-15px 15px 30px rgba(0,0,0,0.9)); transform-origin: bottom right; }
 
-        .damage-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; background: radial-gradient(circle, transparent 40%, rgba(255,8,68,0.4) 100%); opacity: 0; transition: opacity 0.15s; }
-        .esc-hint { position: absolute; top: 20px; right: 20px; color: #fff; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 999px; font-weight: bold; font-size: 0.8rem; backdrop-filter: blur(10px); }
+        #weapon-overlay { position: absolute; bottom: -5%; right: 5%; width: 40vh; height: 40vh; pointer-events: none; filter: drop-shadow(-15px 15px 30px rgba(0,0,0,0.9)); transform-origin: bottom center; }
+
+        .damage-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; background: radial-gradient(circle, transparent 40%, rgba(255,8,68,0.4) 100%); opacity: 0; transition: opacity 0.12s ease; }
+        .esc-hint { position: absolute; top: 20px; right: 20px; color: #fff; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 999px; font-weight: bold; font-size: 0.8rem; backdrop-filter: blur(15px); }
+        #game-ammo { position:absolute; right:22px; top:70px; z-index:100; background:rgba(0,0,0,.55); color:#fff; border-radius:14px; padding:10px 12px; font: 800 14px var(--font-en); letter-spacing:1px; box-shadow:0 10px 18px rgba(0,0,0,.35); }
 
     </style>
 </head>
@@ -209,18 +206,16 @@
     <div class="vignette"></div>
     <div id="toast-container"></div>
 
-    <!-- [VIEW 1] 랜딩 뷰 -->
     <div id="landing-view">
         <div class="glass-panel" style="width: 100%; max-width: 500px; text-align: center;">
             <h1 style="font-family: var(--font-en); font-size: 2.8rem; color: #fff; margin-bottom: 0;">APOCALYPSE</h1>
             <h2 style="font-family: var(--font-en); color: var(--primary); font-size: 1.3rem; margin-bottom: 30px; letter-spacing: 2px;">ULTIMATE ARENA</h2>
-            
+
             <input type="text" id="login-id" class="input-modern" placeholder="AGENT ID" maxlength="10">
             <button class="btn-super" style="width: 100%; margin-top: 25px;" onclick="App.login()">SYSTEM LOGIN</button>
         </div>
     </div>
 
-    <!-- [VIEW 2] 메인 대시보드 -->
     <div id="dashboard-view">
         <header>
             <div class="nav-tabs">
@@ -235,7 +230,6 @@
             </div>
         </header>
 
-        <!-- 멀티플레이 탭 -->
         <div id="tab-multiplayer" class="tab-content active">
             <h2 class="title-text">MULTIPLAYER LOBBY</h2>
             <div class="grid-2">
@@ -243,7 +237,7 @@
                     <h3 style="margin-bottom: 10px; color: var(--primary); font-size: 1.3rem; font-family: var(--font-en);">HOST SERVER</h3>
                     <p style="color:rgba(255,255,255,0.6); margin-bottom:20px; font-weight:700; font-size:0.9rem;">방장이 되어 매치를 생성합니다.</p>
                     <button class="btn-super" id="btn-host" onclick="App.Network.hostRoom()" style="width:100%;">CREATE ROOM</button>
-                    
+
                     <div id="host-info" style="display:none; margin-top:15px;">
                         <p style="color:rgba(255,255,255,0.5); font-weight:700; font-size:0.8rem;">ROOM CODE</p>
                         <div style="font-size:3rem; font-family:var(--font-en); color:var(--gold); margin:5px 0; font-weight:900; text-shadow:0 10px 20px rgba(0,0,0,0.5);" id="my-code">---</div>
@@ -259,7 +253,7 @@
                         <button class="btn-super" onclick="App.Network.joinRoom()" style="padding: 16px 24px;">JOIN</button>
                     </div>
                     <div id="chat-log" style="background: rgba(0,0,0,0.4); border-radius: 20px; height: 150px; padding: 15px; overflow-y: auto; font-size: 0.9rem; margin-bottom: 15px; color: rgba(255,255,255,0.8);">
-                        > 보안 연결 대기 중...
+                        &gt; 보안 연결 대기 중...
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="chat-input" class="input-modern" placeholder="Message..." disabled>
@@ -269,7 +263,6 @@
             </div>
         </div>
 
-        <!-- 인벤토리 탭 -->
         <div id="tab-armory" class="tab-content">
             <h2 class="title-text">ARMORY</h2>
             <div class="grid-2">
@@ -283,50 +276,44 @@
             </div>
         </div>
 
-        <!-- 스킬트리 탭 (신규) -->
         <div id="tab-skills" class="tab-content">
             <h2 class="title-text" style="color: var(--emerald);">CYBERNETICS UPGRADE</h2>
             <div class="skill-grid">
-                <!-- 노드 1: 공격력 -->
                 <div class="skill-node">
                     <div class="skill-level">Lv.<span id="lvl-atk">1</span></div>
                     <div class="skill-icon" style="color:var(--accent);">⚔️</div>
                     <h3 style="color:var(--accent); font-family:var(--font-en); margin-bottom:10px;">DAMAGE CORE</h3>
-                    <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">기본 타격 데미지가 증가합니다.<br>현재: <span id="val-atk" style="color:var(--accent); font-weight:900;">10</span></p>
+                    <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">기본 타격 데미지가 증가합니다.<br>현재: <span id="val-atk" style="color:#fff; font-weight:900;">10</span></p>
                     <button class="btn-super" style="width:100%; font-size:0.9rem; padding:12px;" onclick="App.Skills.upgrade('atk')">UPGRADE (<span id="cost-atk">1500</span>C)</button>
                 </div>
-                <!-- 노드 2: 행운 -->
                 <div class="skill-node">
                     <div class="skill-level">Lv.<span id="lvl-luck">1</span></div>
                     <div class="skill-icon" style="color:var(--gold);">🍀</div>
                     <h3 style="color:var(--gold); font-family:var(--font-en); margin-bottom:10px;">LUCK MATRIX</h3>
-                    <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">블랙마켓 고등급 등장 확률 증가.<br>현재: +<span id="val-luck" style="color:var(--gold); font-weight:900;">0</span>%</p>
+                    <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">블랙마켓 고등급 등장 확률 증가.<br>현재: +<span id="val-luck" style="color:#fff; font-weight:900;">0</span>%</p>
                     <button class="btn-super gold" style="width:100%; font-size:0.9rem; padding:12px;" onclick="App.Skills.upgrade('luck')">UPGRADE (<span id="cost-luck">3000</span>C)</button>
                 </div>
-                <!-- 노드 3: 체력 -->
                 <div class="skill-node">
                     <div class="skill-level">Lv.<span id="lvl-hp">1</span></div>
                     <div class="skill-icon" style="color:var(--emerald);">❤️</div>
                     <h3 style="color:var(--emerald); font-family:var(--font-en); margin-bottom:10px;">VITALITY IMPLANT</h3>
-                    <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">3D 전장에서의 최대 체력 증가.<br>현재: <span id="val-hp" style="color:var(--emerald); font-weight:900;">100</span></p>
+                    <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">3D 전장에서의 최대 체력 증가.<br>현재: <span id="val-hp" style="color:#fff; font-weight:900;">100</span></p>
                     <button class="btn-super" style="background:linear-gradient(135deg, var(--emerald), #059669); width:100%; font-size:0.9rem; padding:12px;" onclick="App.Skills.upgrade('hp')">UPGRADE (<span id="cost-hp">2000</span>C)</button>
                 </div>
-                <!-- 노드 4: 이속 -->
                 <div class="skill-node">
                     <div class="skill-level">Lv.<span id="lvl-spd">1</span></div>
                     <div class="skill-icon" style="color:var(--primary);">⚡</div>
                     <h3 style="color:var(--primary); font-family:var(--font-en); margin-bottom:10px;">AGILITY SERVO</h3>
-                    <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">3D 전장에서의 이동 속도 증가.<br>현재: <span id="val-spd" style="color:var(--primary); font-weight:900;">100</span>%</p>
+                    <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">3D 전장에서의 이동 속도 증가.<br>현재: <span id="val-spd" style="color:#fff; font-weight:900;">100</span></p>
                     <button class="btn-super" style="width:100%; font-size:0.9rem; padding:12px;" onclick="App.Skills.upgrade('spd')">UPGRADE (<span id="cost-spd">2500</span>C)</button>
                 </div>
             </div>
         </div>
 
-        <!-- 블랙마켓 탭 (레이아웃 겹침 구조 완벽 분리) -->
         <div id="tab-gacha" class="tab-content">
             <div class="gacha-wrapper">
                 <h2 class="title-text" style="color: var(--accent);">BLACK MARKET</h2>
-                
+
                 <div class="glass-panel gacha-stage">
                     <canvas id="gacha-vfx"></canvas>
                     <div id="roulette-svg-container"></div>
@@ -341,15 +328,15 @@
         </div>
     </div>
 
-    <!-- [VIEW 3] 3D FPS 매치 -->
     <div id="game-view">
         <canvas id="game-canvas"></canvas>
         <div class="damage-overlay" id="dmg-overlay"></div>
         <div class="crosshair"></div>
+        <div id="game-ammo">30 / 90</div>
         <div class="esc-hint">ESC: 매치 나가기</div>
-        
+
         <div id="weapon-overlay"></div>
-        
+
         <div class="hud-overlay">
             <h3 style="color:#fff; margin-bottom:10px; font-family:var(--font-en); font-size:1.2rem; text-shadow:0 2px 5px #000;">HP: <span id="hp-val">100</span> / <span id="hp-max">100</span></h3>
             <div class="hp-bar-bg"><div class="hp-bar-fill" id="hp-bar"></div></div>
@@ -357,18 +344,15 @@
     </div>
 
     <script>
-        /* ==========================================================================
-           [0] 1,000개 절차적 무기 생성 엔진 (1인칭 FPS 뷰)
-           ========================================================================== */
         const P = { '0':'transparent', '1':'#000', '2':'#333', '3':'#555', '4':'#cbd5e1', '5':'#4ade80', '6':'#c084fc', '7':'#22d3ee', '8':'#fbbf24', '9':'#f43f5e', 'A':'#ffffff' };
 
         window.GAME_ITEMS = {};
         (function initItems() {
             const TEMPLATES = [
-                { type: "KNIFE", name: "단검", baseAtk: 10, data: "000000001X000000\n00000001X4100000\n0000001X44410000\n000001X444441000\n0000014444441000\n0000014444441000\n0000111122111100\n0001111111111100\n0001111111111100\n0000111111111000\n0000111111110000\n0000001111000000\n0000000110000000\n0000000010000000" },
-                { type: "PISTOL", name: "리볼버", baseAtk: 25, data: "0000000110000000\n0000001XX1000000\n000001X44X100000\n0000014334100000\n0000014334100000\n0000014444100000\n0000014444100000\n0000111441110000\n0000111111100000\n0000111111100000\n0000011111000000\n0000001110000000\n0000000100000000\n0000000000000000" },
-                { type: "SHOTGUN", name: "샷건", baseAtk: 50, data: "0000001111000000\n000001YXXY100000\n000001Y44Y100000\n0000014334100000\n0000014334100000\n0000114334110000\n0000144334410000\n0000144444410000\n0000111111100000\n0000111111100000\n0000011111000000\n0000001110000000\n0000000100000000\n0000000000000000" },
-                { type: "RIFLE", name: "라이플", baseAtk: 80, data: "0000001111000000\n000001YXXY100000\n000011XYYX110000\n000014YXXY410000\n000144YXXY441000\n0001334XX4331000\n0013334XX4333100\n0011111111111000\n0000111111100000\n0000111111100000\n0000011111000000\n0000001110000000\n0000000100000000\n0000000000000000" }
+                { type: "KNIFE", name: "단검", baseAtk: 10, data: "000000001X000000\n00000001X4100000\n0000001X44410000\n000001X444441000\n0000014444441000\n0000014444441000\n0000111122111100\n0000111111111100\n0000001111100000\n0000000110000000" },
+                { type: "PISTOL", name: "리볼버", baseAtk: 25, data: "0000000110000000\n0000001XX1000000\n000001X44X100000\n0000014334100000\n0000014334100000\n0000014444100000\n0000014444100000\n0000014444100000\n0000004444000000\n0000000110000000" },
+                { type: "SHOTGUN", name: "샷건", baseAtk: 50, data: "0000001111000000\n000001YXXY100000\n000001Y44Y100000\n0000014334100000\n0000014334100000\n0000114334110000\n0000144334410000\n0001433343410000\n0000011111000000\n0000000110000000" },
+                { type: "RIFLE", name: "라이플", baseAtk: 80, data: "0000001111000000\n000001YXXY100000\n000011XYYX110000\n000014YXXY410000\n000144YXXY441000\n0001334XX4331000\n0013334XX4333100\n00013334X4331000\n0000011111000000\n0000000110000000" }
             ];
 
             const RANKS = [
@@ -390,7 +374,7 @@
                 let rand = Math.random() * totalW; let rObj = RANKS[0];
                 for (let r of RANKS) { if (rand < r.weight) { rObj = r; break; } rand -= r.weight; }
                 const el = ELEMS[Math.floor(Math.random() * ELEMS.length)];
-                
+
                 const id = `W_${i.toString().padStart(4, '0')}`;
                 window.GAME_ITEMS[id] = {
                     id,
@@ -417,14 +401,11 @@
 
         function showToast(msg, isAlert=false) {
             const c = document.getElementById('toast-container');
-            const d = document.createElement('div'); d.className = 'toast'; 
+            const d = document.createElement('div'); d.className = 'toast';
             if(isAlert){ d.style.borderLeftColor='var(--accent)'; d.style.color='var(--accent)'; }
             d.innerHTML = msg; c.appendChild(d); setTimeout(() => { d.style.opacity=0; setTimeout(()=>d.remove(), 400); }, 3000);
         }
 
-        /* ==========================================================================
-           [1] 오디오 & 스킬트리 데이터 시스템
-           ========================================================================== */
         const AC = new (window.AudioContext || window.webkitAudioContext)();
         const AudioSys = {
             play: (t, d, f, v) => {
@@ -440,7 +421,7 @@
             gachaRiser: () => {
                 if(AC.state==='suspended') AC.resume();
                 const o = AC.createOscillator(); const g = AC.createGain();
-                o.connect(g); g.connect(AC.destination); o.type='sawtooth'; const n = AC.currentTime; 
+                o.connect(g); g.connect(AC.destination); o.type='sawtooth'; const n = AC.currentTime;
                 o.frequency.setValueAtTime(100,n); o.frequency.exponentialRampToValueAtTime(3000,n+2.5);
                 g.gain.setValueAtTime(0,n); g.gain.linearRampToValueAtTime(0.3,n+2.3); g.gain.linearRampToValueAtTime(0,n+2.5);
                 o.start(n); o.stop(n+2.5);
@@ -456,9 +437,6 @@
         };
         document.addEventListener('mousedown', e => { if(e.target.closest('button') || e.target.closest('.inv-item')) AudioSys.click(); });
 
-        /* ==========================================================================
-           [2] 메인 UI 컨트롤 & 스킬트리 엔진
-           ========================================================================== */
         const App = {
             id: '', coin: 10000, inv: [], eqp: null,
             stats: {
@@ -529,12 +507,10 @@
             eqpItem: (id) => {
                 App.eqp = id; AudioSys.equip(); showToast(`[${GAME_ITEMS[id].name}] 장착됨`);
                 App.renderInv(); document.getElementById('weapon-overlay').innerHTML = getSVG(GAME_ITEMS[id]);
+                if (window.Engine3D) { window.Engine3D.resetAmmo(); }
             }
         };
 
-        /* ==========================================================================
-           [3] 극한의 화려함 - 캔버스 파티클 가챠 엔진 (행운 스탯 반영)
-           ========================================================================== */
         const Gacha = {
             cvs: null, ctx: null, w:0, h:0, particles: [], state: 0, time: 0,
             init: () => {
@@ -547,7 +523,7 @@
                 if(App.coin < 1000) return showToast('코인이 부족합니다.', true);
                 if(Gacha.state > 0) return;
                 App.coin -= 1000; App.updateUI();
-                
+
                 const btn = document.getElementById('btn-pull'); btn.disabled = true;
                 const svgCont = document.getElementById('roulette-svg-container');
                 const nameBox = document.getElementById('item-name');
@@ -559,11 +535,11 @@
                     if(i.rank==='SR' || i.rank==='SSR') w *= (1 + (App.stats.luck.val / 100));
                     return s + w;
                 }, 0);
-                
+
                 let item = pool[0];
-                for(let i of pool){ 
+                for(let i of pool){
                     let w = i.weight; if(i.rank==='SR' || i.rank==='SSR') w *= (1 + (App.stats.luck.val / 100));
-                    if(rand<w){item=i; break;} rand-=w; 
+                    if(rand<w){item=i; break;} rand-=w;
                 }
 
                 Gacha.state = 1; Gacha.time = 0; AudioSys.gachaRiser();
@@ -572,11 +548,11 @@
 
                 Gacha.state = 2; Gacha.time = 0; Gacha.particles = []; AudioSys.explosion();
                 for(let i=0; i<300; i++) Gacha.particles.push({x:Gacha.w/2, y:Gacha.h/2, vx:(Math.random()-0.5)*40, vy:(Math.random()-0.5)*40, life:1});
-                
+
                 svgCont.innerHTML = getSVG(item);
                 svgCont.style.opacity = '1'; svgCont.style.transform = 'scale(1.5)';
                 svgCont.style.filter = item.rank==='SSR' ? `drop-shadow(0 0 60px ${item.color})` : `drop-shadow(0 0 20px ${item.color})`;
-                
+
                 nameBox.innerHTML = `[${item.rank}] ${item.name}`; nameBox.style.color = item.color; nameBox.style.opacity = '1';
                 App.addInv(item.id);
 
@@ -587,7 +563,7 @@
                 const ctx = Gacha.ctx; ctx.clearRect(0,0,Gacha.w,Gacha.h);
                 Gacha.time++; const cx = Gacha.w/2, cy = Gacha.h/2;
 
-                if(Gacha.state === 1) { 
+                if(Gacha.state === 1) {
                     ctx.fillStyle = `rgba(0,0,0,${Math.min(Gacha.time/50, 0.7)})`; ctx.fillRect(0,0,Gacha.w,Gacha.h);
                     Gacha.particles.forEach(p => {
                         p.a += 0.15; const dist = Math.max(0, 300 - Gacha.time*p.speed);
@@ -595,12 +571,12 @@
                         ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(px,py,3,0,Math.PI*2); ctx.fill();
                         ctx.strokeStyle = `rgba(255,255,255,0.1)`; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py); ctx.stroke();
                     });
-                } else if(Gacha.state === 2) { 
+                } else if(Gacha.state === 2) {
                     const alpha = Math.max(0, 1 - Gacha.time/80);
                     const gradient = ctx.createLinearGradient(0,0,0,Gacha.h);
                     gradient.addColorStop(0, 'transparent'); gradient.addColorStop(0.5, `rgba(255,255,255,${alpha})`); gradient.addColorStop(1, 'transparent');
                     ctx.fillStyle = gradient; ctx.fillRect(cx-150*alpha, 0, 300*alpha, Gacha.h);
-                    
+
                     Gacha.particles.forEach(p => {
                         p.x += p.vx; p.y += p.vy; p.life -= 0.015;
                         if(p.life>0){ ctx.fillStyle=`rgba(255,255,255,${p.life})`; ctx.fillRect(p.x,p.y,5,5); }
@@ -612,9 +588,6 @@
         App.Gacha = Gacha;
         setTimeout(Gacha.init, 100);
 
-        /* ==========================================================================
-           [4] PeerJS 네트워크 & 3D 둠 엔진
-           ========================================================================== */
         App.Network = {
             peer: null, conn: null,
             log: msg => { const b=document.getElementById('chat-log'); b.innerHTML+=`<div style="margin-bottom:5px;">${msg}</div>`; b.scrollTop=b.scrollHeight; },
@@ -631,7 +604,7 @@
                 setTimeout(() => { App.Network.conn = App.Network.peer.connect('DOOM-NEO-' + t); App.Network.setup(); }, 500);
             },
             setup: () => {
-                App.Network.conn.on('open', () => { document.getElementById('chat-input').disabled = false; document.getElementById('chat-btn').disabled = false; App.Network.log('> 통신 링크 활성화'); });
+                App.Network.conn.on('open', () => { document.getElementById('chat-input').disabled = false; document.getElementById('chat-btn').disabled = false; App.Network.log('> 통신 링크 연결됨.'); });
                 App.Network.conn.on('data', d => {
                     if(d.type === 'START') Engine3D.startMatch();
                     else if(d.type === 'UPDATE') Engine3D.enemyState = d.data;
@@ -639,7 +612,7 @@
                     else App.Network.log(`[상대] ${d}`);
                 });
             },
-            sendChat: () => { const v = document.getElementById('chat-input').value; if(v && App.Network.conn) { App.Network.conn.send(v); App.Network.log(`[나] ${v}`); document.getElementById('chat-input').value=''; } },
+            sendChat: () => { const v = document.getElementById('chat-input').value; if(v && App.Network.conn) { App.Network.conn.send(v); App.Network.log(`[나] ${v}`); document.getElementById('chat-input').value = ''; } },
             hostStartGame: () => { if(App.Network.conn) App.Network.conn.send({type:'START'}); Engine3D.startMatch(); }
         };
 
@@ -662,6 +635,7 @@
             keys: { w:false, a:false, s:false, d:false, left:false, right:false },
             zBuffer: [],
             targetBox: null,
+            ammo: { clipSize:30, clip:30, reserve:90, reloading:false, reloadTime:1200, lastShot:0, cooldown:180 },
 
             init: () => {
                 Engine3D.cvs = document.getElementById('game-canvas'); Engine3D.ctx = Engine3D.cvs.getContext('2d');
@@ -671,6 +645,7 @@
                     if(e.key==='a') Engine3D.keys.a=true; if(e.key==='d') Engine3D.keys.d=true;
                     if(e.key==='ArrowLeft') Engine3D.keys.left=true; if(e.key==='ArrowRight') Engine3D.keys.right=true;
                     if(e.key==='Escape') Engine3D.leaveMatch();
+                    if(e.key==='r') Engine3D.reload();
                 });
                 window.addEventListener('keyup', e => {
                     if(e.key==='w') Engine3D.keys.w=false; if(e.key==='s') Engine3D.keys.s=false;
@@ -678,14 +653,40 @@
                     if(e.key==='ArrowLeft') Engine3D.keys.left=false; if(e.key==='ArrowRight') Engine3D.keys.right=false;
                 });
                 document.getElementById('game-view').addEventListener('mousedown', Engine3D.shoot);
+                Engine3D.resetAmmo();
+            },
+            resetAmmo: () => {
+                Engine3D.ammo.clip = 30;
+                Engine3D.ammo.reserve = 90;
+                Engine3D.ammo.reloading = false;
+                Engine3D.ammo.lastShot = 0;
+                Engine3D.updateAmmoUI();
+            },
+            updateAmmoUI: () => {
+                const ammo = document.getElementById('game-ammo');
+                if (ammo) ammo.innerText = `${Engine3D.ammo.clip} / ${Engine3D.ammo.reserve}`;
+            },
+            reload: () => {
+                if (Engine3D.ammo.reloading || Engine3D.ammo.clip === Engine3D.ammo.clipSize || Engine3D.ammo.reserve <= 0) return;
+                Engine3D.ammo.reloading = true;
+                showToast('재장전 중...', false);
+                setTimeout(() => {
+                    const need = Engine3D.ammo.clipSize - Engine3D.ammo.clip;
+                    const loaded = Math.min(need, Engine3D.ammo.reserve);
+                    Engine3D.ammo.clip += loaded;
+                    Engine3D.ammo.reserve -= loaded;
+                    Engine3D.ammo.reloading = false;
+                    Engine3D.updateAmmoUI();
+                }, Engine3D.ammo.reloadTime);
             },
             startMatch: () => {
                 document.getElementById('dashboard-view').style.display = 'none'; document.getElementById('game-view').style.display = 'flex';
-                Engine3D.p.hp = App.stats.hp.val; 
+                Engine3D.p.hp = App.stats.hp.val;
                 document.getElementById('hp-max').innerText = App.stats.hp.val;
-                document.getElementById('hp-val').innerText = App.stats.hp.val; 
+                document.getElementById('hp-val').innerText = App.stats.hp.val;
                 document.getElementById('hp-bar').style.width='100%';
-                
+                Engine3D.resetAmmo();
+
                 if(App.Network.peer && App.Network.peer.id.includes('DOOM')) { Engine3D.p.x=1.5; Engine3D.p.y=1.5; } else { Engine3D.p.x=8.5; Engine3D.p.y=8.5; }
                 if(!App.eqp) showToast('무기 없이 진입했습니다!', true);
                 Engine3D.loopId = requestAnimationFrame(Engine3D.loop);
@@ -698,7 +699,7 @@
             },
             loop: () => { Engine3D.updateMovement(); Engine3D.draw3D(); Engine3D.loopId = requestAnimationFrame(Engine3D.loop); },
             updateMovement: () => {
-                const ms = 0.05 * (App.stats.spd.val / 100); 
+                const ms = 0.05 * (App.stats.spd.val / 100);
                 const rs = 0.04; const p = Engine3D.p;
                 if(Engine3D.keys.w) { if(Engine3D.map[Math.floor(p.x + p.dirX * ms)][Math.floor(p.y)] === 0) p.x += p.dirX * ms; if(Engine3D.map[Math.floor(p.x)][Math.floor(p.y + p.dirY * ms)] === 0) p.y += p.dirY * ms; }
                 if(Engine3D.keys.s) { if(Engine3D.map[Math.floor(p.x - p.dirX * ms)][Math.floor(p.y)] === 0) p.x -= p.dirX * ms; if(Engine3D.map[Math.floor(p.x)][Math.floor(p.y - p.dirY * ms)] === 0) p.y -= p.dirY * ms; }
@@ -736,14 +737,14 @@
 
                     const lh = Math.floor(h / pwd); const ds = -lh / 2 + h / 2;
                     const c = side === 1 ? 80 : 120; const shade = Math.max(0, 1 - pwd/12);
-                    ctx.fillStyle = `rgb(${c*shade}, ${c*shade}, ${(c+50)*shade})`; 
+                    ctx.fillStyle = `rgb(${c*shade}, ${c*shade}, ${(c+50)*shade})`;
                     ctx.fillRect(x, Math.max(0, ds), 1, lh); Engine3D.zBuffer[x] = pwd;
                 }
 
                 const ex = Engine3D.enemyState.x - p.x, ey = Engine3D.enemyState.y - p.y;
                 const invDet = 1.0 / (p.planeX * p.dirY - p.dirX * p.planeY);
-                const tx = invDet * (p.dirY * ex - p.dirX * ey), ty = invDet * (-p.planeY * ex + p.planeX * ey); 
-                
+                const tx = invDet * (p.dirY * ex - p.dirX * ey), ty = invDet * (-p.planeY * ex + p.planeX * ey);
+
                 if(ty > 0) {
                     const ssX = Math.floor((w / 2) * (1 + tx / ty)); const sH = Math.abs(Math.floor(h / ty)), sW = Math.abs(Math.floor(h / ty));
                     const dSY = -sH / 2 + h / 2, dSX = -sW / 2 + ssX, dEX = sW / 2 + ssX;
@@ -756,9 +757,23 @@
                 } else { Engine3D.targetBox = null; }
             },
             shoot: () => {
+                if (Engine3D.ammo.reloading) return;
+                const now = Date.now();
+                if (now - Engine3D.ammo.lastShot < Engine3D.ammo.cooldown) return;
+                if (Engine3D.ammo.clip <= 0) { Engine3D.reload(); return; }
+                Engine3D.ammo.lastShot = now;
+                Engine3D.ammo.clip -= 1;
+                Engine3D.updateAmmoUI();
                 AudioSys.shoot();
+
                 const wep = document.getElementById('weapon-overlay');
                 wep.style.transform = 'translateY(50px) rotate(5deg) scale(1.1)'; setTimeout(()=>wep.style.transform='', 100);
+
+                if (window.weaponProjectile) {
+                    const color = App.eqp ? GAME_ITEMS[App.eqp].color : '#ff0844';
+                    const weapon = GAME_ITEMS[App.eqp]?.rank === 'SSR' ? 'RIFLE' : GAME_ITEMS[App.eqp]?.rank === 'SR' ? 'SHOTGUN' : 'PISTOL';
+                    window.weaponProjectile(weapon, color);
+                }
 
                 const cx = Engine3D.w / 2;
                 if(Engine3D.targetBox && cx > Engine3D.targetBox.minX && cx < Engine3D.targetBox.maxX && Engine3D.targetBox.depth > 0) {
@@ -780,7 +795,10 @@
                 }
             }
         };
+        window.Engine3D = Engine3D;
         Engine3D.init();
     </script>
+
+    <script src="mobile-joystick.js"></script>
 </body>
 </html>
