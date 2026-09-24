@@ -3,1152 +3,796 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DOOM GACHA : APOCALYPSE PROTOCOL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
-    
-    <!-- 멀티플레이 및 QR 코드 라이브러리 -->
+    <title>APOCALYPSE : 3D ARENA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
-    <!-- 외부 아이템 데이터 파일 로드 (이후 제공될 파일) -->
-    <script src="items.js"></script>
-
     <style>
         /* ==========================================================================
-           [0] 전역 변수 및 초기화 (반응형 최적화)
+           [1] 모던 & 클린 UI (Glassmorphism & Rounded)
            ========================================================================== */
         :root {
-            --c-red: #ff003c; --c-red-dim: #550011;
-            --c-green: #33ff00; --c-green-dim: #004400;
-            --c-blue: #00aaff; --c-blue-dim: #002244;
-            --c-gold: #ffcc00; --c-purple: #b300ff;
-            --c-dark: #050505; --c-panel: rgba(10, 15, 20, 0.85);
-            --font-pixel: 'Press Start 2P', cursive;
-            --font-main: 'Noto Sans KR', sans-serif;
+            --bg-color: #121216;
+            --panel-bg: rgba(30, 30, 36, 0.65);
+            --panel-border: rgba(255, 255, 255, 0.1);
+            --primary: #4ade80; /* 부드러운 네온 그린 */
+            --secondary: #60a5fa; /* 부드러운 블루 */
+            --accent: #f43f5e; /* 부드러운 핑크/레드 */
+            --gold: #fbbf24;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-kr: 'Noto Sans KR', sans-serif;
+            --font-en: 'Outfit', sans-serif;
         }
-        
+
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        
-        body { 
-            background-color: var(--c-dark); color: #fff; font-family: var(--font-main);
-            overflow: hidden; width: 100vw; height: 100vh;
-            background-image: linear-gradient(rgba(0, 255, 0, 0.05) 1px, transparent 1px), 
-                              linear-gradient(90deg, rgba(0, 255, 0, 0.05) 1px, transparent 1px);
-            background-size: 40px 40px; background-position: center center;
+        body {
+            background-color: var(--bg-color); color: var(--text-main);
+            font-family: var(--font-kr); overflow: hidden; height: 100vh;
+            /* 부드러운 그라데이션 배경 */
+            background: radial-gradient(circle at top right, #1f1f2e, #0a0a0c);
         }
 
-        /* 시각적 이펙트 (CRT, 비네팅, 플래시뱅) */
-        .crt-scanlines {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 3px, 3px 100%; pointer-events: none; z-index: 9999;
-        }
-        .vignette {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, transparent 30%, #000 120%);
-            pointer-events: none; z-index: 9997;
-        }
-        #flash-bang {
-            position: fixed; top:0; left:0; width:100%; height:100%; background:#fff;
-            opacity:0; pointer-events:none; z-index:9998; transition:opacity 0.1s;
+        /* 둥글고 예쁜 유리 질감 패널 */
+        .glass-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            padding: 30px;
+            transition: transform 0.3s ease;
         }
 
-        /* 글리치 및 카메라 흔들림 애니메이션 */
-        @keyframes glitch-anim {
-            0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 2px); }
-            20% { clip-path: inset(80% 0 10% 0); transform: translate(2px, -2px); }
-            40% { clip-path: inset(40% 0 50% 0); transform: translate(2px, 2px); }
-            60% { clip-path: inset(20% 0 60% 0); transform: translate(-2px, -2px); }
-            80% { clip-path: inset(60% 0 20% 0); transform: translate(2px, 2px); }
-            100% { clip-path: inset(30% 0 70% 0); transform: translate(-2px, -2px); }
+        /* 부드러운 버튼 스타일 */
+        .btn-modern {
+            background: linear-gradient(135deg, var(--secondary), #3b82f6);
+            color: #fff; border: none; border-radius: 16px;
+            padding: 16px 32px; font-size: 1.1rem; font-weight: bold; font-family: var(--font-en);
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 10px 20px rgba(96, 165, 250, 0.3);
         }
-        .glitch-text { position: relative; display: inline-block; }
-        .glitch-text::before, .glitch-text::after {
-            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--c-dark);
-        }
-        .glitch-text::before { left: 2px; text-shadow: -1px 0 red; animation: glitch-anim 2s infinite linear alternate-reverse; }
-        .glitch-text::after { left: -2px; text-shadow: -1px 0 blue; animation: glitch-anim 3s infinite linear alternate-reverse; }
-        
-        .shake-light { animation: shakeLight 0.1s infinite; }
-        .shake-heavy { animation: shakeHeavy 0.05s infinite; filter: blur(1px) contrast(1.2); }
-        @keyframes shakeLight { 0%,100%{transform:translate(0,0)} 25%{transform:translate(2px,2px)} 50%{transform:translate(-2px,-1px)} 75%{transform:translate(1px,-2px)} }
-        @keyframes shakeHeavy { 0%,100%{transform:translate(0,0)} 25%{transform:translate(6px,5px)} 50%{transform:translate(-8px,-4px)} 75%{transform:translate(5px,-9px)} }
+        .btn-modern:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(96, 165, 250, 0.5); }
+        .btn-modern:active { transform: translateY(1px); }
+        .btn-modern.red { background: linear-gradient(135deg, var(--accent), #e11d48); box-shadow: 0 10px 20px rgba(244, 63, 94, 0.3); }
+        .btn-modern.green { background: linear-gradient(135deg, var(--primary), #16a34a); box-shadow: 0 10px 20px rgba(74, 222, 128, 0.3); }
+        .btn-modern:disabled { filter: grayscale(1); opacity: 0.5; pointer-events: none; }
 
-        /* ==========================================================================
-           [1] 공통 UI 컴포넌트
-           ========================================================================== */
-        .btn-cyber {
-            background: linear-gradient(45deg, transparent 5%, var(--c-red) 5%);
-            color: #fff; font-family: var(--font-pixel); border: none; cursor: pointer;
-            padding: 15px 30px; font-size: 1rem; font-weight: bold; text-transform: uppercase;
-            box-shadow: 6px 0px 0px #00e6f6; transition: all 0.2s; position: relative; outline: transparent;
+        input.input-modern {
+            background: rgba(0,0,0,0.3); border: 2px solid var(--panel-border);
+            border-radius: 12px; color: #fff; padding: 16px; font-size: 1.1rem;
+            width: 100%; outline: none; transition: border-color 0.3s; font-family: var(--font-en);
+            text-align: center;
         }
-        .btn-cyber:hover { background: linear-gradient(45deg, transparent 5%, var(--c-blue) 5%); box-shadow: 6px 0px 0px var(--c-red); transform: scale(1.02); }
-        .btn-cyber:active { transform: scale(0.98); box-shadow: 2px 0px 0px var(--c-red); }
-        .btn-cyber.disabled { filter: grayscale(1); pointer-events: none; box-shadow: none; opacity: 0.5; }
+        input.input-modern:focus { border-color: var(--secondary); background: rgba(0,0,0,0.5); }
 
-        .panel {
-            background: var(--c-panel); border: 1px solid #333; position: relative;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 20px rgba(0,0,0,0.5);
-            padding: 25px; backdrop-filter: blur(10px);
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+        /* 토스트 알림창 */
+        #toast-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 10000; pointer-events: none; }
+        .toast {
+            background: var(--panel-bg); border-left: 5px solid var(--primary);
+            border-radius: 12px; padding: 16px 24px; font-weight: bold;
+            backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
-        .panel::before { content:''; position:absolute; top:0; left:0; width:100%; height:2px; background: linear-gradient(90deg, transparent, var(--c-blue), transparent); }
-
-        /* 토스트 알림창 (모바일 가독성을 위해 줄바꿈 지원) */
-        #toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 10000; pointer-events: none; width: calc(100% - 40px); max-width: 350px; }
-        .toast { background: rgba(0,20,40,0.95); border-left: 4px solid var(--c-blue); color: #fff; padding: 15px; font-family: var(--font-main); font-weight: bold; font-size: 0.9rem; line-height: 1.5; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: slideIn 0.3s ease-out forwards; word-break: keep-all; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
+        @keyframes slideIn { from { transform: translateX(100%) scale(0.9); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
 
         /* ==========================================================================
-           [2] 주요 화면 레이아웃 (반응형 최적화)
+           [2] 레이아웃 및 탭 시스템
            ========================================================================== */
-        /* 로그인 랜딩 뷰 */
         #landing-view {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #100 0%, #000 100%);
-            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; transition: opacity 0.5s; padding: 20px;
+            position: fixed; width: 100vw; height: 100vh; display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            background: radial-gradient(circle at center, #1e1e2d, #050508);
+            transition: opacity 0.5s;
         }
-        .auth-input { width: 100%; max-width: 400px; padding: 20px; background: rgba(0,0,0,0.5); border: 2px solid var(--c-red); color: var(--c-red); font-family: var(--font-pixel); text-align: center; font-size: 1.2rem; outline: none; margin: 30px 0; box-shadow: inset 0 0 10px var(--c-red-dim); }
 
-        /* 대시보드 뷰 */
-        #dashboard-view { display: none; width: 100vw; height: 100vh; flex-direction: column; position: relative; }
+        #dashboard-view { display: none; width: 100vw; height: 100vh; flex-direction: column; }
         
-        /* 상단 네비게이션 헤더 */
         header {
-            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 15px 20px;
-            background: rgba(5,5,5,0.95); border-bottom: 2px solid var(--c-blue); z-index: 100; gap: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 40px; background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px); border-bottom: 1px solid var(--panel-border);
         }
-        .nav-tabs { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+        
+        .nav-tabs { display: flex; gap: 12px; }
         .tab-btn {
-            background: transparent; color: #888; border: 1px solid #444; padding: 10px 15px;
-            cursor: pointer; transition: 0.2s; font-size: 0.75rem; font-family: var(--font-pixel);
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            flex: 1; min-width: 120px; text-align: center;
+            background: transparent; color: var(--text-muted); border: none;
+            padding: 12px 24px; border-radius: 12px; font-weight: bold; font-family: var(--font-en);
+            cursor: pointer; transition: 0.3s;
         }
-        .tab-btn:hover { background: #222; color: #fff; }
-        .tab-btn.active { background: var(--c-blue); color: #000; border-color: var(--c-blue); box-shadow: 0 0 15px var(--c-blue); }
+        .tab-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .tab-btn.active { background: var(--secondary); color: #fff; box-shadow: 0 5px 15px rgba(96,165,250,0.4); }
         
-        .hud-stats { display: flex; gap: 15px; font-family: var(--font-pixel); font-size: 0.8rem; align-items: center; justify-content: flex-end; }
-        .hud-coin { color: var(--c-gold); border: 1px solid var(--c-gold); padding: 8px 12px; background: rgba(255,204,0,0.1); box-shadow: 0 0 10px rgba(255,204,0,0.2); }
-
-        /* 탭 컨텐츠 공통 속성 */
-        .tab-content { display: none; flex: 1; padding: 20px; overflow-y: auto; overflow-x: hidden; z-index: 10; position: relative; }
-        .tab-content.active { display: block; animation: fadeInTab 0.3s ease-out; }
-        .section-title { font-family: var(--font-pixel); font-size: 1.5rem; margin-bottom: 20px; color: #fff; text-shadow: 2px 2px 0 var(--c-blue); text-align: center; line-height: 1.4; }
-        
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
-
-        /* 멀티플레이 탭 특화 */
-        .code-display { font-size: 2.5rem; color: var(--c-gold); text-align: center; letter-spacing: 5px; margin: 15px 0; text-shadow: 0 0 20px var(--c-gold); font-family: var(--font-pixel); }
-        .input-row { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .input-row input { width: 100%; padding: 15px; background: #000; border: 1px solid #555; color: #fff; font-size: 1.1rem; text-align: center; font-family: var(--font-pixel); text-transform: uppercase; }
-        .chat-log { height: 180px; background: rgba(0,0,0,0.8); border: 1px solid #333; padding: 10px; overflow-y: auto; font-family: monospace; color: #0a0; font-size: 0.9rem; line-height: 1.5; margin-top: 15px; word-break: break-all; }
-
-        /* 인벤토리 탭 특화 */
-        .inventory-layout { display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }
-        @media (min-width: 900px) { .inventory-layout { grid-template-columns: 1fr 350px; } }
-        
-        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; max-height: 50vh; overflow-y: auto; padding-right: 5px; }
-        .inv-item { background: #0a0a0a; border: 2px solid #333; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
-        .inv-item.equipped { border-color: var(--c-green); box-shadow: 0 0 15px var(--c-green) inset; }
-        .inv-item.equipped::after { content: 'EQP'; position: absolute; bottom: 2px; font-family: var(--font-pixel); font-size: 0.5rem; color: var(--c-green); background: #000; padding: 2px 4px; }
-        .inv-item svg { width: 70%; height: 70%; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
-        .item-qty { position: absolute; top: 3px; right: 3px; font-family: var(--font-pixel); font-size: 0.6rem; color: #aaa; }
-
-        .detail-icon { width: 100px; height: 100px; margin: 0 auto 15px auto; }
-        .detail-title { font-family: var(--font-main); font-weight: 900; font-size: 1.2rem; margin-bottom: 10px; text-align: center; word-break: keep-all; }
-
-        /* 가챠 탭 특화 (하단 덮임 방지 및 반응형 비율 유지) */
-        #tab-gacha { display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle at center, #0a0000 0%, transparent 70%); }
-        .gacha-stage { position: relative; width: 100%; max-width: 600px; flex: 1; min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 40px 0; }
-        
-        .portal-core {
-            position: absolute; top: 20%; left: 50%; transform: translateX(-50%); width: 280px; height: 280px; border-radius: 50%;
-            background: conic-gradient(from 0deg, transparent 0%, rgba(0,255,255,0.1) 20%, transparent 40%, rgba(255,0,255,0.1) 60%, transparent 80%);
-            box-shadow: 0 0 50px rgba(0,0,0,0.9), inset 0 0 50px rgba(0,0,0,0.9); opacity: 0; pointer-events: none; z-index: 1;
+        .hud-coin {
+            background: rgba(251, 191, 36, 0.1); color: var(--gold);
+            border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px;
+            padding: 10px 20px; font-weight: bold; font-family: var(--font-en);
         }
-        .portal-core.active { opacity: 1; animation: spinPortal 2s linear infinite; }
-        .portal-core.furious { animation: spinPortal 0.2s linear infinite, portalPulse 0.1s infinite; filter: brightness(2) contrast(1.5); }
-        @keyframes spinPortal { 100% { transform: translateX(-50%) rotate(360deg); } }
-        
-        #roulette-item { width: 160px; height: 160px; z-index: 5; margin-top: 10vh; transition: transform 0.2s; opacity: 0; pointer-events: none; }
-        
-        .glitch-item-name { font-size: 1.8rem; margin: 20px 0; opacity: 0; font-family: var(--font-main); font-weight: 900; letter-spacing: 2px; z-index: 10; text-align: center; width: 100%; text-shadow: 0 0 10px currentColor, 0 0 10px #000; word-break: keep-all; pointer-events: none; min-height: 3rem; }
-        
-        .gacha-controls { display: flex; flex-direction: column; align-items: center; width: 100%; z-index: 100; margin-top: auto; }
-        .btn-pull-epic { background: linear-gradient(180deg, #ff0055, #880022); border: 3px solid #fff; padding: 20px 40px; font-size: 1.5rem; color: #fff; cursor: pointer; font-family: var(--font-pixel); box-shadow: 0 10px 0 #440011, 0 0 20px #ff0055; border-radius: 8px; width: 100%; max-width: 400px; text-align: center; }
-        .btn-pull-epic:active { transform: translateY(10px); box-shadow: 0 0 0 #440011, 0 0 30px #ff0055; }
-        
-        /* 등급별 효과 */
-        .reveal-N { filter: drop-shadow(0 0 10px #aaa); opacity: 1 !important; transform: scale(1.1); transition: all 1s; }
-        .reveal-R { filter: drop-shadow(0 0 25px var(--c-blue)); opacity: 1 !important; transform: scale(1.3); transition: all 1s; }
-        .reveal-SR { filter: drop-shadow(0 0 50px var(--c-purple)) contrast(1.2); opacity: 1 !important; transform: scale(1.5); animation: floatItem 2s ease-in-out infinite; }
-        .reveal-SSR { filter: drop-shadow(0 0 80px var(--c-gold)) drop-shadow(0 0 20px #fff) contrast(1.5); opacity: 1 !important; transform: scale(1.8); animation: floatItemSSR 0.5s infinite; }
-        @keyframes floatItem { 0%, 100% { transform: scale(1.5) translateY(0); } 50% { transform: scale(1.5) translateY(-10px); } }
-        @keyframes floatItemSSR { 0% { transform: scale(1.8) rotate(0deg); } 25% { transform: scale(1.8) rotate(2deg); } 75% { transform: scale(1.8) rotate(-2deg); } 100% { transform: scale(1.8) rotate(0deg); } }
-        .chaos-mode { opacity: 1 !important; transform: scale(1.2); filter: brightness(0) drop-shadow(0 0 30px #fff); animation: chaosJitter 0.05s infinite; }
-        @keyframes chaosJitter { 0% { transform: scale(1.2) translate(3px, -3px); } 50% { transform: scale(1.3) translate(-3px, 3px); } 100% { transform: scale(1.2) translate(-2px, -2px); } }
 
-        /* 전투 미니게임 특화 */
-        .combat-ui { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 15px; }
-        #play-canvas { display: block; width: 100%; max-width: 1000px; height: 50vh; margin: 0 auto; background: #020202; border: 3px solid var(--c-red); cursor: crosshair; box-shadow: inset 0 0 30px rgba(255,0,0,0.2); }
+        .tab-content { display: none; flex: 1; padding: 40px; overflow-y: auto; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .title-text { font-family: var(--font-en); font-size: 2rem; margin-bottom: 24px; text-align: center; color: #fff; }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; max-width: 1000px; margin: 0 auto; }
+
+        /* ==========================================================================
+           [3] 가챠 & 인벤토리 뷰
+           ========================================================================== */
+        /* 인벤토리 둥근 그리드 */
+        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; }
+        .inv-item {
+            background: rgba(0,0,0,0.4); border: 2px solid var(--panel-border); border-radius: 16px;
+            aspect-ratio: 1; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: 0.3s; position: relative; overflow: hidden;
+        }
+        .inv-item:hover { transform: translateY(-5px); border-color: var(--secondary); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .inv-item.equipped { border-color: var(--primary); box-shadow: 0 0 20px rgba(74, 222, 128, 0.4) inset; }
+        .inv-item svg { width: 70%; height: 70%; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); }
+
+        /* 궁극의 가챠 캔버스 레이아웃 */
+        #tab-gacha { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .gacha-stage { position: relative; width: 100%; max-width: 800px; height: 500px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         
-        #vfx-canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9000; mix-blend-mode: screen; }
+        /* 100배 화려해진 가챠 이펙트 캔버스 */
+        #gacha-vfx { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; border-radius: 24px; }
+        
+        #roulette-svg-container {
+            z-index: 10; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center;
+            opacity: 0; transform: scale(0.5); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .gacha-name { font-size: 2rem; font-weight: 900; margin-top: 30px; opacity: 0; z-index: 10; text-shadow: 0 5px 15px rgba(0,0,0,0.8); text-align: center; }
+
+        /* ==========================================================================
+           [4] 3D 멀티플레이어 캔버스 뷰
+           ========================================================================== */
+        #game-view {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000; z-index: 5000; flex-direction: column;
+        }
+        #game-canvas { width: 100%; height: 100%; object-fit: cover; cursor: crosshair; }
+        
+        /* 3D 뷰 오버레이 (크로스헤어, 체력, 총기) */
+        .crosshair {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%;
+            pointer-events: none;
+        }
+        .crosshair::after { content:''; position:absolute; top:8px; left:8px; width:4px; height:4px; background:#fff; border-radius:50%; }
+        
+        .hud-overlay { position: absolute; bottom: 30px; left: 30px; pointer-events: none; }
+        .hp-bar-bg { width: 300px; height: 24px; background: rgba(0,0,0,0.6); border: 2px solid #333; border-radius: 12px; overflow: hidden; }
+        .hp-bar-fill { height: 100%; background: linear-gradient(90deg, #e11d48, #f43f5e); width: 100%; transition: width 0.2s; }
+        
+        /* 1인칭 FPS 총기 오버레이 */
+        #weapon-overlay {
+            position: absolute; bottom: -5%; right: 10%; width: 40vh; height: 40vh;
+            pointer-events: none; filter: drop-shadow(-10px 10px 20px rgba(0,0,0,0.8));
+            transform-origin: bottom center; transition: transform 0.1s;
+        }
+
+        .damage-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;
+            background: radial-gradient(circle, transparent 50%, rgba(255,0,0,0.3) 100%);
+            opacity: 0; transition: opacity 0.1s;
+        }
+
+        #kill-msg {
+            position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
+            font-size: 3rem; color: var(--gold); font-weight: 900; text-shadow: 0 5px 20px #000;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s;
+        }
+
+        /* ESC 안내 */
+        .esc-hint { position: absolute; top: 20px; right: 20px; color: #fff; background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 12px; }
 
     </style>
 </head>
 <body>
-    <!-- 시각 효과 및 파티클 캔버스 -->
-    <div class="crt-scanlines"></div>
-    <div class="vignette"></div>
-    <div id="flash-bang"></div>
-    <canvas id="vfx-canvas"></canvas>
     <div id="toast-container"></div>
 
-    <!-- [VIEW 1] 랜딩 인트로 -->
+    <!-- [VIEW 1] 랜딩 뷰 (Glassmorphism) -->
     <div id="landing-view">
-        <div class="panel" style="text-align: center; width: 100%; max-width: 600px;">
-            <h1 class="glitch-text" data-text="APOCALYPSE" style="font-family: var(--font-pixel); font-size: 2.5rem; color: var(--c-red); margin-bottom: 10px; word-break: break-all;">APOCALYPSE</h1>
-            <h2 style="font-family: var(--font-pixel); font-size: 1.5rem; color: #fff; margin-bottom: 20px; letter-spacing: 2px;">PROTOCOL</h2>
-            
-            <p style="color:var(--c-green); font-family:monospace; font-size:0.9rem; line-height:1.6; margin-bottom: 20px; word-break: keep-all;">
-                > SECURE CONNECTION ESTABLISHED.<br>
-                > BLACK MARKET GACHA : ONLINE.<br>
-                > IDENTIFY YOURSELF, AGENT.
-            </p>
-            <input type="text" id="login-id" class="auth-input" placeholder="AGENT ID" maxlength="10">
-            <br>
-            <button class="btn-cyber" onclick="App.login()" style="width: 100%; padding: 20px; font-size: 1.2rem;">SYSTEM OVERRIDE</button>
+        <div class="glass-panel" style="width: 100%; max-width: 500px; text-align: center;">
+            <h1 style="font-family: var(--font-en); font-size: 2.5rem; color: #fff; margin-bottom: 5px;">APOCALYPSE</h1>
+            <h2 style="font-family: var(--font-en); color: var(--secondary); font-size: 1.2rem; margin-bottom: 30px;">3D ARENA MULTIPLAYER</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">요원 식별 코드를 입력하여 시스템에 접속하십시오.</p>
+            <input type="text" id="login-id" class="input-modern" placeholder="AGENT ID" maxlength="10">
+            <button class="btn-modern" style="width: 100%; margin-top: 20px;" onclick="App.login()">SYSTEM LOGIN</button>
         </div>
     </div>
 
-    <!-- [VIEW 2] 대시보드 메인 -->
+    <!-- [VIEW 2] 메인 대시보드 뷰 -->
     <div id="dashboard-view">
         <header>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="App.switchTab('multiplayer')">COMM-LINK<br>(멀티)</button>
-                <button class="tab-btn active" onclick="App.switchTab('armory')">ARMORY<br>(장비)</button>
-                <button class="tab-btn" onclick="App.switchTab('gacha')" style="color:var(--c-red); border-color:var(--c-red);">BLACK MARKET<br>(가챠)</button>
-                <button class="tab-btn" onclick="App.switchTab('combat')">WARZONE<br>(전투)</button>
+                <button class="tab-btn active" onclick="App.switchTab('multiplayer')">MULTIPLAYER</button>
+                <button class="tab-btn" onclick="App.switchTab('armory')">ARMORY</button>
+                <button class="tab-btn" onclick="App.switchTab('gacha')" style="color:var(--accent);">BLACK MARKET</button>
             </div>
-            <div class="hud-stats">
-                <div style="color:#aaa;">AGENT <span id="hud-name" style="color:#fff;"></span></div>
-                <div class="hud-coin">COIN: <span id="hud-coin">10,000</span></div>
+            <div style="display:flex; align-items:center; gap:20px;">
+                <span id="hud-name" style="font-weight:bold;"></span>
+                <div class="hud-coin"><span id="hud-coin">10,000</span> C</div>
             </div>
         </header>
 
-        <!-- [TAB 1: 멀티플레이] -->
-        <div id="tab-multiplayer" class="tab-content">
-            <h2 class="section-title">COMMUNICATION UPLINK</h2>
+        <!-- 탭: 멀티플레이 로비 -->
+        <div id="tab-multiplayer" class="tab-content active">
+            <h2 class="title-text">MULTIPLAYER LOBBY</h2>
             <div class="grid-2">
-                <!-- 방 생성 (HOST) -->
-                <div class="panel" style="text-align: center; display: flex; flex-direction: column; justify-content: center;">
-                    <h3 style="font-family:var(--font-pixel); color:var(--c-green); margin-bottom: 10px; font-size: 1rem;">HOST SERVER</h3>
-                    <p style="color:#888; font-size:0.8rem; margin-bottom:20px; line-height: 1.5; word-break: keep-all;">
-                        보안 세션을 생성하여<br>다른 요원을 초대합니다.
-                    </p>
-                    <button class="btn-cyber" id="btn-host" onclick="App.Network.hostRoom()" style="width:100%; margin-bottom: 10px;">CREATE ROOM</button>
+                <div class="glass-panel" style="text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                    <h3 style="margin-bottom: 10px; color: var(--primary);">CREATE ROOM</h3>
+                    <p style="color:var(--text-muted); margin-bottom:20px; font-size: 0.9rem;">방장이 되어 상대방을 초대합니다.</p>
+                    <button class="btn-modern green" id="btn-host" onclick="App.Network.hostRoom()" style="width:100%;">HOST SERVER</button>
                     
-                    <div id="host-info" style="display:none;">
-                        <p style="color:#fff; font-size: 0.8rem;">ROOM CODE:</p>
-                        <div class="code-display" id="my-code">---</div>
-                        <div id="qrcode" style="background:#fff; padding:10px; display:inline-block; margin-bottom: 15px;"></div>
-                        
-                        <!-- 방장 전용 게임 시작 버튼 -->
-                        <button class="btn-cyber" id="btn-host-start" onclick="App.Network.hostStartGame()" style="width:100%; background:var(--c-red-dim); box-shadow: 6px 0px 0px var(--c-red);">START CO-OP MISSION</button>
+                    <div id="host-info" style="display:none; margin-top:20px;">
+                        <p style="color:var(--text-muted); font-size:0.9rem;">ROOM CODE</p>
+                        <div style="font-size:3rem; font-family:var(--font-en); color:var(--gold); margin:10px 0; letter-spacing:5px;" id="my-code">---</div>
+                        <div id="qrcode" style="background:#fff; padding:10px; display:inline-block; border-radius:12px; margin-bottom:20px;"></div>
+                        <button class="btn-modern red" onclick="App.Network.hostStartGame()" style="width:100%;">START 3D MATCH</button>
                     </div>
                 </div>
 
-                <!-- 방 참가 (JOIN) & 채팅 -->
-                <div class="panel">
-                    <h3 style="font-family:var(--font-pixel); color:var(--c-blue); margin-bottom: 10px; font-size: 1rem;">JOIN SERVER</h3>
-                    <div class="input-row">
-                        <input type="text" id="target-code" placeholder="ENTER 3-DIGIT CODE" maxlength="3">
-                        <button class="btn-cyber" onclick="App.Network.joinRoom()">CONNECT</button>
+                <div class="glass-panel">
+                    <h3 style="margin-bottom: 10px; color: var(--secondary);">JOIN ROOM</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <input type="text" id="target-code" class="input-modern" placeholder="3-DIGIT CODE" maxlength="3">
+                        <button class="btn-modern" onclick="App.Network.joinRoom()">JOIN</button>
                     </div>
-                    
-                    <div class="chat-log" id="chat-log">
-                        <div>> 시스템 온라인. 통신 대기 중...</div>
+                    <div id="chat-log" style="background: rgba(0,0,0,0.3); border-radius: 12px; height: 150px; padding: 15px; overflow-y: auto; font-size: 0.9rem; margin-bottom: 10px; color: var(--primary);">
+                        > Waiting for connection...
                     </div>
-                    <div class="input-row">
-                        <input type="text" id="chat-input" placeholder="MESSAGE..." disabled>
-                        <button class="btn-cyber" id="chat-btn" onclick="App.Network.sendChat()" disabled>SEND</button>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="chat-input" class="input-modern" placeholder="Message..." disabled>
+                        <button class="btn-modern" id="chat-btn" onclick="App.Network.sendChat()" disabled>SEND</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- [TAB 2: 인벤토리 & 업그레이드] -->
-        <div id="tab-armory" class="tab-content active">
-            <h2 class="section-title">ARMORY & LOADOUT</h2>
-            <div class="inventory-layout">
-                <!-- 획득 아이템 목록 -->
-                <div class="panel">
-                    <h3 style="font-family:var(--font-pixel); color:var(--c-gold); margin-bottom: 15px; font-size:0.9rem;">ACQUIRED WEAPONS</h3>
-                    <div class="inv-grid" id="inventory-grid">
-                        <!-- JS에서 아이템이 동적 렌더링 됩니다. -->
-                    </div>
-                    <div id="empty-inv-msg" style="text-align:center; color:#555; margin-top:30px; font-family:var(--font-pixel); font-size:0.8rem; line-height:1.5;">
-                        INVENTORY IS EMPTY.<br>VISIT BLACK MARKET.
-                    </div>
+        <!-- 탭: 인벤토리 -->
+        <div id="tab-armory" class="tab-content">
+            <h2 class="title-text">ARMORY</h2>
+            <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 350px; gap: 30px;">
+                <div class="glass-panel">
+                    <h3 style="margin-bottom: 20px; color: var(--gold);">MY WEAPONS</h3>
+                    <div class="inv-grid" id="inventory-grid"></div>
                 </div>
-
-                <!-- 아이템 디테일 & 플레이어 스탯 -->
-                <div style="display: flex; flex-direction: column; gap: 20px;">
-                    <div class="panel" id="detail-view" style="text-align:center;">
-                        <div style="color:#555; font-family:var(--font-pixel); font-size:0.8rem; padding: 20px 0;">SELECT A WEAPON</div>
-                    </div>
-
-                    <div class="panel">
-                        <h3 style="font-family:var(--font-pixel); color:var(--c-blue); margin-bottom: 15px; font-size:0.9rem;">AGENT STATUS</h3>
-                        <div style="font-family:var(--font-pixel); font-size: 0.75rem; line-height: 2.2; color: #ccc;">
-                            <div style="display:flex; justify-content:space-between;"><span>BASE ATK:</span> <span id="stat-base-atk" style="color:#fff;">10</span></div>
-                            <div style="display:flex; justify-content:space-between; color:var(--c-green);"><span>WEAPON ATK:</span> <span id="stat-wep-atk">+0</span></div>
-                            <div style="display:flex; justify-content:space-between; border-top:1px solid #333; margin-top:5px; padding-top:5px; font-weight:bold; color:var(--c-red);"><span>TOTAL DMG:</span> <span id="stat-total-atk">10</span></div>
-                        </div>
-                        <button class="btn-cyber" onclick="App.buyBaseAttack()" style="width:100%; font-size:0.7rem; padding:15px; margin-top: 15px;">UPGRADE BASE ATK<br>(<span id="cost-atk">1500</span>C)</button>
-                    </div>
+                <div class="glass-panel" id="detail-view" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                    <p style="color:var(--text-muted);">무기를 선택하세요.</p>
                 </div>
             </div>
         </div>
 
-        <!-- [TAB 3: 블랙마켓 가챠] (레이아웃 개선 완료) -->
+        <!-- 탭: 압도적 연출의 가챠 -->
         <div id="tab-gacha" class="tab-content">
-            <h2 class="section-title" style="color:var(--c-red); letter-spacing:3px;">VOID ROULETTE</h2>
-            <div class="gacha-stage">
-                <!-- 이펙트 레이어 -->
-                <div class="portal-core" id="portal"></div>
-                <!-- 아이템 렌더링 영역 -->
-                <div id="roulette-item"></div>
-                <!-- 아이템 이름 텍스트 -->
-                <div id="item-name" class="glitch-item-name"></div>
+            <h2 class="title-text" style="color: var(--accent);">BLACK MARKET</h2>
+            <div class="glass-panel gacha-stage">
+                <!-- 100배 화려한 캔버스 VFX 레이어 -->
+                <canvas id="gacha-vfx"></canvas>
                 
-                <!-- 하단 컨트롤 영역 -->
-                <div class="gacha-controls">
-                    <button class="btn-pull-epic" id="btn-pull" onclick="App.Gacha.execute()">EXTRACT WEAPON</button>
-                    <p style="margin-top:15px; font-family:var(--font-pixel); color:var(--c-gold); font-size: 0.8rem; text-shadow:0 0 5px #000;">COST: 1,000 COINS</p>
-                </div>
+                <div id="roulette-svg-container"></div>
+                <div id="item-name" class="gacha-name"></div>
+                
+                <button class="btn-modern red" id="btn-pull" onclick="App.Gacha.execute()" style="margin-top: auto; z-index: 10; width: 80%; max-width: 300px; padding: 20px;">EXTRACT WEAPON (1000C)</button>
             </div>
-        </div>
-
-        <!-- [TAB 4: 미니게임 전투] -->
-        <div id="tab-combat" class="tab-content">
-            <div class="combat-ui">
-                <h2 class="section-title" style="margin:0; text-align:left; flex:1;">WARZONE</h2>
-                <div style="font-family:var(--font-pixel); font-size:1.2rem; color:var(--c-gold);">SCORE: <span id="score-display">0</span></div>
-                <button class="btn-cyber" style="background:var(--c-red-dim); box-shadow: 4px 0px 0px var(--c-red); padding: 12px 20px;" onclick="App.Combat.start()">START</button>
-            </div>
-            
-            <canvas id="play-canvas"></canvas>
-            
-            <p style="text-align:center; color:#888; font-size: 0.85rem; margin-top:15px; line-height: 1.6; word-break: keep-all;">
-                화면의 타겟을 터치(클릭)하여 파괴하십시오.<br>
-                장착한 무기의 공격력이 데미지에 적용됩니다.
-            </p>
         </div>
     </div>
 
-    <!-- 메인 어플리케이션 자바스크립트 -->
-    <script>
-        /**
- * ============================================================================
- * APOCALYPSE ENGINE : PROCEDURAL ITEM GENERATOR (v1.0)
- * ============================================================================
- * 1,000개가 넘는 방대한 무기 데이터를 절차적으로 생성하는 코어 스크립트입니다.
- * 픽셀 뼈대(Base)에 속성(Element)과 등급(Rank) 변이를 주어 무한에 가까운
- * 무기 조합을 만들어냅니다.
- */
-
-(function() {
-    // 1. 고해상도 픽셀 아트 뼈대 (Base Templates - 16x16 & 20x20)
-    // 0:투명, 1:검은테두리, 2:어두운회색, 3:중간회색, 4:밝은회색/은색
-    // X: 동적 컬러(속성에 따라 변함), Y: 동적 광원(발광부)
-    const BASE_TEMPLATES = [
-        {
-            type: "DAGGER",
-            name: "서바이벌 나이프",
-            baseAtk: 5,
-            data: `
-0000000000000044
-000000000000044X
-00000000000044X0
-0000000000044X00
-000000000044X000
-00000001144X0000
-0000001X14X00000
-000001XX14000000
-00001XX100000000
-0001XX1000000000
-001XX10000000000
-01XX100000000000
-0111000000000000
-0000000000000000`
-        },
-        {
-            type: "REVOLVER",
-            name: "매그넘 리볼버",
-            baseAtk: 12,
-            data: `
-0000000000000000
-0000000000000000
-0011111111111000
-0144444444444100
-014XX33333334100
-0011111114444100
-000000001XXXX100
-000000001XXXX100
-0000000011111100
-0000000000000000`
-        },
-        {
-            type: "KATANA",
-            name: "사이버 카타나",
-            baseAtk: 25,
-            data: `
-000000000000000011
-0000000000000011YY
-00000000000011YYX0
-000000000011YYX000
-0000000011YYX00000
-00000011YYX0000000
-000011YYX000000000
-0011YYX00000000000
-01111X000000000000
-001XX1000000000000
-0001XX100000000000
-000011000000000000`
-        },
-        {
-            type: "SHOTGUN",
-            name: "택티컬 샷건",
-            baseAtk: 40,
-            data: `
-0000000000000000
-1111111111111110
-1444444444444441
-133YY333333YY331
-1111111111111110
-001XX22222100000
-0011111111000000
-001XX10000000000
-001XX10000000000
-011XX11000000000
-0111111000000000`
-        },
-        {
-            type: "RIFLE",
-            name: "플라즈마 소총",
-            baseAtk: 65,
-            data: `
-0000000000011111
-00000000001YXXY1
-11111111111YXXY1
-14444444444YYXY1
-1422244222411111
-1422244222444441
-1111111111111111
-0001X33310000000
-0001111110000000
-0001X31000000000
-0011X31100000000`
-        },
-        {
-            type: "SNIPER",
-            name: "입자 가속 저격총",
-            baseAtk: 110,
-            data: `
-0000000111110000
-0000011YXYXY1100
-1111114YYXYY4111
-1444444444444441
-1111114XXXXX4111
-0000011XXXXX1100
-0000000111110000
-0000000122210000
-0000001122211000
-0000001111111000`
-        },
-        {
-            type: "SCYTHE",
-            name: "영혼 수확기",
-            baseAtk: 150,
-            data: `
-000000001111111111
-00000011YXYXYXYX10
-000011YXYX11111100
-0011YXYX1100000000
-11YXYX110000000000
-1YXY11000000000000
-111100000000000000
-0001X1000000000000
-00001X100000000000
-000001X10000000000
-0000001X1000000000
-000000011000000000`
-        },
-        {
-            type: "BFG",
-            name: "아포칼립스 캐논",
-            baseAtk: 300,
-            data: `
-0000111111111100
-0001444444444410
-0014YYYYYYYYYY41
-014YXXXXYXXYXYX2
-14YYXYYYYXYYYYY4
-14YXXYXXYXXYXXX4
-014YXYXYXYXYXYX2
-0014YYYYYYYYYY41
-0001444444444410
-0000111111111100
-0000013333100000
-0000113333110000
-0001133333311000`
-        }
-    ];
-
-    // 2. 랭크 확률 및 배율 설정
-    const RANKS = [
-        { id: 'N', weight: 500, multiplier: 1, color: '#aaaaaa', prefix: ["낡은", "녹슨", "보급형", "손상된", "평범한"] },
-        { id: 'R', weight: 300, multiplier: 2.5, color: '#00aaff', prefix: ["강화된", "전술형", "경량화", "개조된", "합금"] },
-        { id: 'SR', weight: 150, multiplier: 6, color: '#b300ff', prefix: ["프로토타입", "하이퍼", "사이버", "초전도", "엘리트"] },
-        { id: 'SSR', weight: 49, multiplier: 15, color: '#ffcc00', prefix: ["전설의", "다크매터", "초차원", "절대", "종말의"] },
-        { id: 'UR', weight: 1, multiplier: 50, color: '#ff003c', prefix: ["【신살자】", "【알파&오메가】", "【공허의 유산】", "【아포칼립스】"] } // 히든 등급
-    ];
-
-    // 3. 속성 컬러 및 네이밍 변형 (X, Y 픽셀 치환용)
-    const ELEMENTS = [
-        { name: "물리", codeX: '3', codeY: '4', hex: '#888888' },      // 무속성
-        { name: "화염", codeX: '9', codeY: '8', hex: '#ff003c' },      // 9:빨강, 8:노랑
-        { name: "빙결", codeX: '7', codeY: 'A', hex: '#00ffff' },      // 7:시안, A:흰색
-        { name: "맹독", codeX: '5', codeY: '7', hex: '#33ff00' },      // 5:네온그린
-        { name: "공허", codeX: '6', codeY: '9', hex: '#b300ff' },      // 6:보라
-        { name: "신성", codeX: '8', codeY: 'A', hex: '#ffcc00' }       // 8:골드
-    ];
-
-    // 4. 아이템 1,000개 절차적 생성 엔진
-    window.GAME_ITEMS = {};
-
-    function generateMassiveItemDatabase() {
-        let itemCount = 0;
-
-        // [Phase 1] 1번부터 1,000번까지 무작위 조합 생성
-        for (let i = 1; i <= 1000; i++) {
-            // 1. 뼈대 선택
-            const base = BASE_TEMPLATES[Math.floor(Math.random() * BASE_TEMPLATES.length)];
-            
-            // 2. 랭크 선택 (가중치 기반)
-            const totalWeight = RANKS.reduce((sum, r) => sum + r.weight, 0);
-            let rand = Math.random() * totalWeight;
-            let rankObj = RANKS[0];
-            for (let r of RANKS) {
-                if (rand < r.weight) { rankObj = r; break; }
-                rand -= r.weight;
-            }
-
-            // 3. 속성 선택
-            const element = ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
-
-            // 4. 이름 조합
-            const prefix = rankObj.prefix[Math.floor(Math.random() * rankObj.prefix.length)];
-            let finalName = rankObj.id === 'UR' ? `${prefix} ${base.name}` : `${prefix} ${element.name} ${base.name}`;
-            
-            // UR 등급은 번호 부여로 유니크함 강조
-            if (rankObj.id === 'UR') finalName += ` Mk-${Math.floor(Math.random()*999)}`;
-
-            // 5. 픽셀 데이터 컬러 치환 (X, Y 렌더링)
-            // 원본 데이터를 복사하면서 X와 Y를 선택된 속성의 컬러 코드로 변경
-            let pixelData = base.data.replace(/X/g, element.codeX).replace(/Y/g, element.codeY);
-
-            // 6. 능력치 연산 (기본 공격력 * 랭크 배율 * (0.8~1.2 난수))
-            let finalAtk = Math.floor(base.baseAtk * rankObj.multiplier * (0.8 + Math.random() * 0.4));
-
-            // 데이터베이스에 등록
-            const itemId = `ITEM_${i.toString().padStart(4, '0')}`;
-            window.GAME_ITEMS[itemId] = {
-                id: itemId,
-                name: finalName,
-                rank: rankObj.id,
-                color: rankObj.id === 'UR' ? '#ff003c' : rankObj.color, // UR은 강렬한 네온 레드
-                atk: finalAtk,
-                weight: rankObj.weight, // 뽑기 확률 가중치 그대로 사용
-                data: pixelData
-            };
-            itemCount++;
-        }
-
-        // [Phase 2] 이스터에그 / 확정 스페셜 아이템 3개 하드코딩 추가
-        // 1000개 외에 무조건 존재하는 궁극의 아이템
-        window.GAME_ITEMS['ITEM_DOOM_01'] = {
-            id: 'ITEM_DOOM_01', name: '【DOOM】 크루시블 (악마학살검)', rank: 'SSR', color: '#ff003c', atk: 9999, weight: 0.5,
-            data: `
-0000000000000001
-0000000000000119
-0000000000011999
-000000000119A991
-0000000119A99110
-00000119A9911000
-000119A991100000
-0019A99110000000
-0199911000000000
-1991111000000000
-1111881100000000
-0018888100000000
-0001881000000000
-0000110000000000`
-        };
+    <!-- [VIEW 3] 진짜 3D FPS 게임 화면 (Doom 스타일) -->
+    <div id="game-view">
+        <canvas id="game-canvas"></canvas>
+        <div class="damage-overlay" id="dmg-overlay"></div>
+        <div class="crosshair"></div>
+        <div class="esc-hint">ESC: Leave Match</div>
         
-        window.GAME_ITEMS['ITEM_DEV_02'] = {
-            id: 'ITEM_DEV_02', name: '【ADMIN】 개발자의 밴 해머', rank: 'UR', color: '#00ffff', atk: 99999, weight: 0.1,
-            data: `
-0001111111111000
-0017777777777100
-017A77777777A710
-0177777777777710
-017A77777777A710
-0017777777777100
-0001111111111000
-0000001441000000
-0000001441000000
-0000001441000000
-0000001441000000
-0000001441000000
-0000001111000000`
-        };
+        <!-- 현재 장착한 1인칭 무기 뷰 -->
+        <div id="weapon-overlay"></div>
+        
+        <div class="hud-overlay">
+            <h3 style="color:#fff; margin-bottom:5px; text-shadow:0 2px 5px #000;">HP: <span id="hp-val">100</span></h3>
+            <div class="hp-bar-bg"><div class="hp-bar-fill" id="hp-bar"></div></div>
+        </div>
 
-        console.log(`[APOCALYPSE ENGINE] 총 ${itemCount + 2}개의 무기고 데이터베이스가 생성되었습니다.`);
-    }
+        <div id="kill-msg">TARGET ELIMINATED!</div>
+    </div>
 
-    // 스크립트가 로드되자마자 즉시 1,000개 아이템 생성 실행
-    generateMassiveItemDatabase();
-})();
+    <script>
+        /* ==========================================================================
+           [0] 1인칭(FPS) 시점에 맞춘 픽셀 무기 생성 엔진 (1000개)
+           -> 앞을 향해 겨누는 듯한 원근감(Perspective) 도트 디자인 적용
+           ========================================================================== */
+        const P = { '0':'transparent', '1':'#000', '2':'#333', '3':'#555', '4':'#aaa', '5':'#33ff00', '6':'#b300ff', '7':'#00ffff', '8':'#ffcc00', '9':'#f43f5e', 'A':'#ffffff' };
 
-        // 색상 팔레트 매핑 (픽셀 렌더링용)
-        const PALETTE = {
-            '0':'transparent', '1':'#000', '2':'#2a2a2a', '3':'#555', '4':'#aaa', 
-            '5':'#33ff00', '6':'#b300ff', '7':'#00ffff', '8':'#ffcc00', '9':'#ff003c', 'A':'#ffffff', 'B':'#5c3a21'
-        };
+        // 1인칭 시점 템플릿 (아래에서 위로 올라가는 형태)
+        window.GAME_ITEMS = {};
+        (function initFPSItems() {
+            const TEMPLATES = [
+                { type: "KNIFE", name: "단검", baseAtk: 10, data: "000000001X000000\n00000001X4100000\n0000001X44410000\n000001X444441000\n0000014444441000\n0000014444441000\n0000111122111100\n0000000122100000\n0000000122100000\n0000000122100000\n0000000122100000\n0000000011000000" },
+                { type: "PISTOL", name: "리볼버", baseAtk: 25, data: "0000000110000000\n0000001XX1000000\n000001X44X100000\n0000014334100000\n0000014334100000\n0000014444100000\n0000014444100000\n0000114444110000\n0001221441221000\n0001221111221000\n0001222222221000\n0000111111110000" },
+                { type: "SHOTGUN", name: "샷건", baseAtk: 50, data: "0000001111000000\n000001YXXY100000\n000001Y44Y100000\n0000014334100000\n0000014334100000\n0000114334110000\n0000144334410000\n0001444334441000\n0001222222221000\n0012222222222100\n0012222222222100\n0001111111111000" },
+                { type: "RIFLE", name: "플라즈마 건", baseAtk: 80, data: "0000001111000000\n000001YXXY100000\n000011XYYX110000\n000014YXXY410000\n000144YXXY441000\n0001334XX4331000\n0013334XX4333100\n0013334444333100\n0112222222222110\n01222Y2222Y22210\n01222Y2222Y22210\n0011111111111100" }
+            ];
 
-        // 데이터 파싱 후 SVG로 변환하는 유틸 함수
-        function renderPixelSVG(itemObj) {
-            const lines = itemObj.data.trim().split('\n').map(l => l.trim());
-            const w = lines[0].length; const h = lines.length;
-            let svg = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">`;
-            for(let y=0; y<h; y++) {
-                for(let x=0; x<w; x++) {
-                    const c = lines[y][x];
-                    if(c !== '0' && PALETTE[c]) svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="${PALETTE[c]}"/>`;
+            const RANKS = [
+                { id: 'N', weight: 500, mul: 1, color: '#94a3b8', pre: ["일반", "보급형"] },
+                { id: 'R', weight: 300, mul: 2.5, color: '#60a5fa', pre: ["전술", "개조된"] },
+                { id: 'SR', weight: 150, mul: 6, color: '#c084fc', pre: ["사이버", "정예"] },
+                { id: 'SSR', weight: 49, mul: 15, color: '#fbbf24', pre: ["초차원", "절대"] }
+            ];
+
+            const ELEMS = [
+                { name: "물리", x: '4', y: 'A' }, { name: "화염", x: '9', y: '8' },
+                { name: "빙결", x: '7', y: 'A' }, { name: "맹독", x: '5', y: '7' }
+            ];
+
+            for (let i = 1; i <= 1000; i++) {
+                const base = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
+                const totalW = RANKS.reduce((s, r) => s + r.weight, 0);
+                let rand = Math.random() * totalW; let rObj = RANKS[0];
+                for (let r of RANKS) { if (rand < r.weight) { rObj = r; break; } rand -= r.weight; }
+                const el = ELEMS[Math.floor(Math.random() * ELEMS.length)];
+                
+                const id = `W_${i.toString().padStart(4, '0')}`;
+                window.GAME_ITEMS[id] = {
+                    id: id, name: `${rObj.pre[Math.floor(Math.random()*2)]} ${el.name} ${base.name}`,
+                    rank: rObj.id, color: rObj.color, atk: Math.floor(base.baseAtk * rObj.mul),
+                    weight: rObj.weight, data: base.data.replace(/X/g, el.x).replace(/Y/g, el.y)
+                };
+            }
+        })();
+
+        function getSVG(itemObj) {
+            const lines = itemObj.data.trim().split('\n');
+            let svg = `<svg viewBox="0 0 ${lines[0].length} ${lines.length}" width="100%" height="100%" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">`;
+            for(let y=0; y<lines.length; y++) {
+                for(let x=0; x<lines[y].length; x++) {
+                    if(lines[y][x] !== '0' && P[lines[y][x]]) svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="${P[lines[y][x]]}"/>`;
                 }
             }
             return svg + `</svg>`;
         }
 
-        /* ==========================================================================
-           [1] 절차적 오디오 및 VFX 시스템
-           ========================================================================== */
-        const AC = new (window.AudioContext || window.webkitAudioContext)();
-        
-        const AudioSys = {
-            play: (type, dur = 0.1, freq = 400, vol = 0.2) => {
-                if(AC.state === 'suspended') AC.resume();
-                const osc = AC.createOscillator(); const gain = AC.createGain();
-                osc.connect(gain); gain.connect(AC.destination);
-                osc.type = type; osc.frequency.setValueAtTime(freq, AC.currentTime);
-                gain.gain.setValueAtTime(vol, AC.currentTime); 
-                gain.gain.exponentialRampToValueAtTime(0.01, AC.currentTime + dur);
-                osc.start(); osc.stop(AC.currentTime + dur);
-            },
-            click: () => AudioSys.play('square', 0.1, 300, 0.1),
-            equip: () => {
-                AudioSys.play('sawtooth', 0.2, 500, 0.1);
-                setTimeout(() => AudioSys.play('sawtooth', 0.4, 800, 0.1), 100);
-            },
-            heartbeat: () => {
-                if(AC.state==='suspended') AC.resume();
-                const o = AC.createOscillator(); const g = AC.createGain();
-                o.connect(g); g.connect(AC.destination); o.type='sine'; o.frequency.value=50;
-                const n = AC.currentTime;
-                g.gain.setValueAtTime(0,n); g.gain.linearRampToValueAtTime(0.8,n+0.1); 
-                g.gain.exponentialRampToValueAtTime(0.1,n+0.3); g.gain.linearRampToValueAtTime(0.6,n+0.4); 
-                g.gain.exponentialRampToValueAtTime(0.01,n+0.8);
-                o.start(n); o.stop(n+1);
-            },
-            riser: (dur) => {
-                const o = AC.createOscillator(); const g = AC.createGain();
-                o.connect(g); g.connect(AC.destination); o.type='sawtooth';
-                const n = AC.currentTime;
-                o.frequency.setValueAtTime(50,n); o.frequency.exponentialRampToValueAtTime(2000,n+dur);
-                g.gain.setValueAtTime(0,n); g.gain.linearRampToValueAtTime(0.2,n+dur-0.2); g.gain.linearRampToValueAtTime(0,n+dur);
-                o.start(n); o.stop(n+dur);
-            },
-            explosion: () => {
-                const b = AC.createBuffer(1, AC.sampleRate*2, AC.sampleRate);
-                const d = b.getChannelData(0); for(let i=0; i<d.length; i++) d[i] = Math.random()*2-1;
-                const n = AC.createBufferSource(); n.buffer = b;
-                const f = AC.createBiquadFilter(); f.type = 'lowpass';
-                const now = AC.currentTime;
-                f.frequency.setValueAtTime(1000, now); f.frequency.exponentialRampToValueAtTime(50, now+1.5);
-                const g = AC.createGain(); g.gain.setValueAtTime(0.8, now); g.gain.exponentialRampToValueAtTime(0.01, now+1.5);
-                n.connect(f); f.connect(g); g.connect(AC.destination); n.start(now);
-            },
-            shoot: (rank) => {
-                const freq = rank==='SSR'?100 : rank==='SR'?200 : 300;
-                const vol = rank==='SSR'?0.4 : 0.2;
-                AudioSys.play('square', 0.15, freq, vol);
-            }
-        };
-
-        // 클릭음 바인딩
-        document.addEventListener('mousedown', e => { if(e.target.tagName==='BUTTON' || e.target.classList.contains('inv-item')) AudioSys.click(); });
-        document.addEventListener('touchstart', e => { if(e.target.tagName==='BUTTON' || e.target.classList.contains('inv-item')) AudioSys.click(); }, {passive:true});
-
-        /* 파티클 VFX 엔진 */
-        const vfx = document.getElementById('vfx-canvas'); const vCtx = vfx.getContext('2d');
-        let particles = [];
-        window.addEventListener('resize', () => { vfx.width = window.innerWidth; vfx.height = window.innerHeight; });
-        vfx.width = window.innerWidth; vfx.height = window.innerHeight;
-
-        class Particle {
-            constructor(x,y,c,type,spd) {
-                this.x=x; this.y=y; this.c=c; this.type=type; this.life=1; this.decay=Math.random()*0.01+0.005;
-                const a = Math.random()*Math.PI*2; const v = Math.random()*spd + spd/2;
-                this.vx=Math.cos(a)*v; this.vy=Math.sin(a)*v; this.sz=Math.random()*5+2;
-            }
-            update() {
-                this.x+=this.vx; this.y+=this.vy; this.life-=this.decay;
-                if(this.type==='spark'){ this.vy+=0.5; if(this.y>vfx.height-10){this.y=vfx.height-10; this.vy*=-0.6;} }
-            }
-            draw(ctx) {
-                ctx.globalAlpha=Math.max(0,this.life); ctx.fillStyle=ctx.strokeStyle=this.c;
-                if(this.type==='spark'){ ctx.beginPath(); ctx.arc(this.x,this.y,this.sz,0,Math.PI*2); ctx.fill(); }
-                else { ctx.lineWidth=this.sz; ctx.beginPath(); ctx.arc(this.x,this.y,(1-this.life)*300,0,Math.PI*2); ctx.stroke(); }
-            }
-        }
-        function spawnFX(x,y,c,amt,type='spark',spd=15) { for(let i=0; i<amt; i++) particles.push(new Particle(x,y,c,type,spd)); }
-        function loopFX() {
-            vCtx.clearRect(0,0,vfx.width,vfx.height);
-            for(let i=particles.length-1; i>=0; i--){ let p=particles[i]; p.update(); p.draw(vCtx); if(p.life<=0) particles.splice(i,1); }
-            requestAnimationFrame(loopFX);
-        }
-        loopFX();
-
-        /* 토스트 알림창 모듈 */
-        function showToast(msg, isAlert=false) {
+        function showToast(msg) {
             const c = document.getElementById('toast-container');
-            const d = document.createElement('div');
-            d.className = 'toast';
-            if(isAlert) { d.style.borderLeftColor = 'var(--c-red)'; d.style.color = 'var(--c-red)'; }
-            d.innerHTML = msg; // innerHTML 사용하여 <br> 인식
-            c.appendChild(d);
-            setTimeout(() => { d.style.animation = 'fadeOut 0.3s forwards'; setTimeout(()=>d.remove(), 300); }, 3000);
+            const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = msg;
+            c.appendChild(d); setTimeout(() => { d.style.opacity=0; setTimeout(()=>d.remove(), 300); }, 3000);
         }
 
         /* ==========================================================================
-           [2] 메인 어플리케이션 상태 및 로직
+           [2] 메인 앱 시스템 & 인벤토리
            ========================================================================== */
         const App = {
-            agentId: "", coin: 10000,
-            stats: { baseAtk: 10, atkCost: 1500 },
-            inventory: [], // 아이템 보관함 [{ id, qty }]
-            equippedItem: null,
-            
+            id: "", coin: 10000, inv: [], eqp: null,
+
             login: () => {
                 const id = document.getElementById('login-id').value.trim();
-                if(!id) return showToast("요원 ID를<br>입력해 주십시오.", true);
-                App.agentId = id.toUpperCase();
-                
+                if(!id) return showToast("아이디를 입력하세요.");
+                App.id = id.toUpperCase();
                 document.getElementById('landing-view').style.opacity = '0';
-                AC.resume();
-                
                 setTimeout(() => {
                     document.getElementById('landing-view').style.display = 'none';
                     document.getElementById('dashboard-view').style.display = 'flex';
-                    document.getElementById('hud-name').innerText = App.agentId;
+                    document.getElementById('hud-name').innerText = App.id;
                     App.updateUI();
-                    showToast(`접속 완료.<br>환영합니다, 요원 ${App.agentId}.`);
                 }, 500);
             },
             
-            switchTab: (tab) => {
+            switchTab: (t) => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                event.target.classList.add('active');
-                document.getElementById(`tab-${tab}`).classList.add('active');
-                
-                // 모바일 환경을 위해 탭 전환시 스크롤 맨 위로
-                document.getElementById(`tab-${tab}`).scrollTop = 0;
+                event.target.classList.add('active'); document.getElementById(`tab-${t}`).classList.add('active');
             },
 
-            updateUI: () => {
-                document.getElementById('hud-coin').innerText = App.coin.toLocaleString();
-                document.getElementById('stat-base-atk').innerText = App.stats.baseAtk;
-                document.getElementById('cost-atk').innerText = App.stats.atkCost.toLocaleString();
-                
-                let wepAtk = App.equippedItem ? window.GAME_ITEMS[App.equippedItem].atk : 0;
-                document.getElementById('stat-wep-atk').innerText = "+" + wepAtk;
-                document.getElementById('stat-total-atk').innerText = App.stats.baseAtk + wepAtk;
+            updateUI: () => { document.getElementById('hud-coin').innerText = App.coin.toLocaleString(); },
+
+            addInv: (id) => {
+                if(!App.inv.includes(id)) App.inv.push(id);
+                App.renderInv();
             },
 
-            buyBaseAttack: () => {
-                if(App.coin < App.stats.atkCost) return showToast("코인이<br>부족합니다.", true);
-                App.coin -= App.stats.atkCost;
-                App.stats.baseAtk += 5;
-                App.stats.atkCost = Math.floor(App.stats.atkCost * 1.5);
-                AudioSys.equip();
-                showToast("기본 공격력이<br>강화되었습니다!");
-                App.updateUI();
-            },
-
-            /* 인벤토리 로직 */
-            addItemToInv: (itemId) => {
-                const ex = App.inventory.find(i => i.id === itemId);
-                if(ex) ex.qty++; else App.inventory.push({ id: itemId, qty: 1 });
-                App.renderInventory();
-            },
-            
-            renderInventory: () => {
-                const grid = document.getElementById('inventory-grid');
-                const msg = document.getElementById('empty-inv-msg');
-                grid.innerHTML = '';
-                
-                if(App.inventory.length === 0) { msg.style.display = 'block'; return; }
-                msg.style.display = 'none';
-
-                const rankOrder = { 'SSR':4, 'SR':3, 'R':2, 'N':1 };
-                App.inventory.sort((a,b) => rankOrder[window.GAME_ITEMS[b.id].rank] - rankOrder[window.GAME_ITEMS[a.id].rank]);
-
-                App.inventory.forEach(item => {
-                    const data = window.GAME_ITEMS[item.id];
+            renderInv: () => {
+                const grid = document.getElementById('inventory-grid'); grid.innerHTML = '';
+                const ro = { 'SSR':4, 'SR':3, 'R':2, 'N':1 };
+                App.inv.sort((a,b) => ro[GAME_ITEMS[b].rank] - ro[GAME_ITEMS[a].rank]).forEach(id => {
+                    const item = GAME_ITEMS[id];
                     const div = document.createElement('div');
-                    div.className = `inv-item ${App.equippedItem === item.id ? 'equipped' : ''}`;
-                    div.style.borderColor = data.color;
-                    div.innerHTML = `${renderPixelSVG(data)}<div class="item-qty">x${item.qty}</div>`;
-                    div.onclick = () => App.selectItem(item.id, div);
+                    div.className = `inv-item ${App.eqp === id ? 'equipped' : ''}`;
+                    div.innerHTML = getSVG(item);
+                    div.onclick = () => {
+                        const dv = document.getElementById('detail-view');
+                        dv.innerHTML = `
+                            <div style="width:120px;height:120px;margin-bottom:20px;">${getSVG(item)}</div>
+                            <h3 style="color:${item.color}; margin-bottom:10px;">[${item.rank}] ${item.name}</h3>
+                            <p style="color:var(--text-muted); margin-bottom:20px;">DAMAGE: ${item.atk}</p>
+                            <button class="btn-modern green" onclick="App.eqpItem('${id}')">EQUIP</button>
+                        `;
+                    };
                     grid.appendChild(div);
                 });
             },
 
-            selectItem: (itemId) => {
-                const data = window.GAME_ITEMS[itemId];
-                const view = document.getElementById('detail-view');
-                view.innerHTML = `
-                    <div class="detail-icon" style="filter:drop-shadow(0 0 10px ${data.color})">${renderPixelSVG(data)}</div>
-                    <div class="detail-title" style="color:${data.color}">[${data.rank}] ${data.name}</div>
-                    <div style="font-family:var(--font-pixel); color:var(--c-red); font-size:0.9rem; margin-bottom:20px;">ATK POWER: +${data.atk}</div>
-                    <button class="btn-cyber" onclick="App.equipItem('${itemId}')">EQUIP WEAPON</button>
-                `;
-            },
-
-            equipItem: (itemId) => {
-                App.equippedItem = itemId;
-                AudioSys.equip();
-                showToast(`[${window.GAME_ITEMS[itemId].name}]<br>장착 완료.`);
-                App.renderInventory(); 
-                App.updateUI();
+            eqpItem: (id) => {
+                App.eqp = id; showToast(`[${GAME_ITEMS[id].name}] 장착됨`);
+                App.renderInv();
+                // FPS 무기 오버레이 업데이트
+                document.getElementById('weapon-overlay').innerHTML = getSVG(GAME_ITEMS[id]);
             }
         };
 
         /* ==========================================================================
-           [3] 가챠 (확률 뽑기) 엔진
+           [3] 100배 화려한 가챠 캔버스 이펙트 엔진
            ========================================================================== */
-        App.Gacha = {
-            isRolling: false,
-            execute: async () => {
-                if(App.coin < 1000) return showToast("코인이<br>부족합니다.", true);
-                if(App.Gacha.isRolling) return;
-                App.Gacha.isRolling = true;
-                App.coin -= 1000; App.updateUI();
-                
-                const btn = document.getElementById('btn-pull'); 
-                const portal = document.getElementById('portal');
-                const itemBox = document.getElementById('roulette-item'); 
-                const nameBox = document.getElementById('item-name');
-                
-                btn.classList.add('disabled'); nameBox.style.opacity = '0'; itemBox.className = ''; itemBox.innerHTML = '';
-
-                // 아이템 풀 확률 롤링
-                const pool = Object.values(window.GAME_ITEMS);
-                let totalW = pool.reduce((s, i) => s + i.weight, 0);
-                let r = Math.random() * totalW;
-                let finalItem = pool[0];
-                for (let i of pool) { if (r < i.weight) { finalItem = i; break; } r -= i.weight; }
-
-                /* 연출 Phase 1 */
-                document.body.classList.add('shake-light');
-                AudioSys.heartbeat(); portal.className = 'portal-core active';
-                await new Promise(res=>setTimeout(res, 1500));
-                AudioSys.heartbeat(); await new Promise(res=>setTimeout(res, 1000));
-
-                /* 연출 Phase 2 */
-                document.body.classList.remove('shake-light'); document.body.classList.add('shake-heavy');
-                portal.className = 'portal-core furious'; AudioSys.riser(2.5);
-                itemBox.className = 'chaos-mode';
-                let chaosInt = setInterval(() => { itemBox.innerHTML = renderPixelSVG(pool[Math.floor(Math.random()*pool.length)]); }, 50);
-                await new Promise(res=>setTimeout(res, 2500)); clearInterval(chaosInt);
-
-                /* 연출 Phase 3 */
-                document.body.classList.remove('shake-heavy'); portal.className = 'portal-core';
-                const flash = document.getElementById('flash-bang'); flash.style.opacity = '1'; AudioSys.explosion();
-                await new Promise(res=>setTimeout(res, 100));
-                
-                itemBox.innerHTML = renderPixelSVG(finalItem);
-                itemBox.className = `reveal-${finalItem.rank}`;
-                flash.style.opacity = '0'; flash.style.transition = 'opacity 2s';
-
-                // 파티클 폭발 효과
-                const cx = window.innerWidth/2, cy = window.innerHeight/2;
-                if(finalItem.rank==='SSR'){
-                    AudioSys.play('square', 2.0, 150, 0.3); // 대체 신스음
-                    spawnFX(cx,cy,'#ffcc00',2,'shockwave',0); spawnFX(cx,cy,'#ffaa00',200,'spark',30);
-                } else if(finalItem.rank==='SR'){
-                    spawnFX(cx,cy,'#b300ff',1,'shockwave',0); spawnFX(cx,cy,'#ff00ff',100,'spark',25);
-                } else if(finalItem.rank==='R'){ spawnFX(cx,cy,'#00aaff',60,'spark',20);
-                } else { spawnFX(cx,cy,'#aaaaaa',30,'spark',15); }
-
-                // 텍스트 글리치 해제 로직
-                nameBox.style.opacity = '1'; nameBox.style.color = finalItem.color;
-                const targetText = `[${finalItem.rank}]<br>${finalItem.name}`;
-                let revIdx = 0;
-                let txtInt = setInterval(() => {
-                    let cur = "";
-                    for(let i=0; i<targetText.length; i++) {
-                        if(targetText[i] === '<') { cur += '<br>'; i+=3; revIdx+=4; continue; }
-                        if(i<revIdx) cur+=targetText[i]; else cur+="!@#$%^&*"[Math.floor(Math.random()*8)];
-                    }
-                    nameBox.innerHTML = cur; revIdx+=0.5;
-                    if(revIdx>=targetText.length) {
-                        clearInterval(txtInt); nameBox.innerHTML = targetText;
-                        App.addItemToInv(finalItem.id); 
-                        if(App.Network.conn && ['SR','SSR'].includes(finalItem.rank)) 
-                            App.Network.conn.send(`[SYSTEM] ${App.agentId} 요원이 [${finalItem.name}] 획득!`);
-                        
-                        setTimeout(() => {
-                            btn.classList.remove('disabled'); App.Gacha.isRolling=false; flash.style.transition='opacity 0.1s';
-                        }, 1000);
-                    }
-                }, 50);
-            }
-        };
-
-        /* ==========================================================================
-           [4] 네트워크 (PeerJS 멀티플레이 동기화)
-           ========================================================================== */
-        App.Network = {
-            peer: null, conn: null, code: "", isHost: false,
-            
-            genStr: () => {
-                const c='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let r='';
-                for(let i=0; i<3; i++) r+=c.charAt(Math.floor(Math.random()*c.length)); return r;
-            },
-            log: (msg, isSys) => {
-                const box = document.getElementById('chat-log');
-                box.innerHTML += `<div style="color:${isSys? 'var(--c-gold)' : 'var(--c-green)'}; margin-bottom:5px; word-break:keep-all;">${msg}</div>`;
-                box.scrollTop = box.scrollHeight;
-            },
-            
-            hostRoom: () => {
-                document.getElementById('btn-host').style.display = 'none';
-                document.getElementById('host-info').style.display = 'block';
-                App.Network.code = App.Network.genStr();
-                document.getElementById('my-code').innerText = App.Network.code;
-                App.Network.isHost = true;
-                
-                const url = window.location.origin + window.location.pathname + "?r=" + App.Network.code;
-                new QRCode(document.getElementById("qrcode"), { text: url, width: 120, height: 120 });
-
-                App.Network.peer = new Peer("DOOM-APP-" + App.Network.code);
-                App.Network.peer.on('open', () => App.Network.log(`> 통신망 생성 완료.<br>> 코드: [ ${App.Network.code} ]`, true));
-                App.Network.peer.on('connection', c => {
-                    App.Network.conn = c; App.Network.setupConn();
-                    App.Network.log(`> 타 요원이<br>세션에 접속했습니다.`, true); showToast("AGENT JOINED!");
-                });
-            },
-
-            joinRoom: () => {
-                const t = document.getElementById('target-code').value.toUpperCase();
-                if(t.length!==3) return showToast("정확한 코드를<br>입력하십시오.", true);
-                App.Network.log(`> [ ${t} ]<br>연결 시도 중...`, true);
-                if(!App.Network.peer) App.Network.peer = new Peer(); 
-                
-                setTimeout(() => {
-                    App.Network.conn = App.Network.peer.connect("DOOM-APP-" + t);
-                    App.Network.setupConn();
-                }, 500);
-            },
-
-            setupConn: () => {
-                App.Network.conn.on('open', () => {
-                    document.getElementById('chat-input').disabled = false;
-                    document.getElementById('chat-btn').disabled = false;
-                    App.Network.log(`> 통신 링크 확립 완료.`, true); showToast("통신 연결 성공.");
-                });
-                App.Network.conn.on('data', d => {
-                    // 명령 패킷 처리 (방장이 게임 시작을 눌렀을 때)
-                    if(d === "CMD:START_GAME") {
-                        showToast("방장에 의해<br>전투가 시작됩니다!", true);
-                        document.querySelectorAll('.tab-btn')[3].click(); // WARZONE 탭 클릭
-                        App.Combat.start();
-                    } else {
-                        App.Network.log(`[수신] ${d}`, false);
-                    }
-                });
-            },
-
-            sendChat: () => {
-                const input = document.getElementById('chat-input');
-                if(input.value && App.Network.conn) {
-                    App.Network.conn.send(`${App.agentId}: ${input.value}`);
-                    App.Network.log(`[발신] ${input.value}`, false);
-                    input.value = '';
-                }
-            },
-
-            hostStartGame: () => {
-                if(App.Network.conn && App.Network.conn.open) {
-                    App.Network.conn.send("CMD:START_GAME");
-                }
-                // 본인도 게임 화면으로 이동 및 시작
-                document.querySelectorAll('.tab-btn')[3].click(); 
-                App.Combat.start();
-            }
-        };
-
-        /* ==========================================================================
-           [5] 전투 미니게임 (Canvas Rendering)
-           ========================================================================== */
-        App.Combat = {
-            cvs: null, ctx: null, loopId: null, spawnerId: null,
-            targets: [], score: 0,
+        const Gacha = {
+            canvas: null, ctx: null, w:0, h:0, particles: [], state: 0, time: 0,
             
             init: () => {
-                App.Combat.cvs = document.getElementById('play-canvas');
-                App.Combat.ctx = App.Combat.cvs.getContext('2d');
-                
-                // 디스플레이 크기에 맞게 내부 캔버스 해상도 조절
+                Gacha.canvas = document.getElementById('gacha-vfx');
+                Gacha.ctx = Gacha.canvas.getContext('2d');
                 const resize = () => {
-                    App.Combat.cvs.width = App.Combat.cvs.offsetWidth || window.innerWidth * 0.9;
-                    App.Combat.cvs.height = App.Combat.cvs.offsetHeight || window.innerHeight * 0.5;
+                    const rect = Gacha.canvas.parentElement.getBoundingClientRect();
+                    Gacha.w = Gacha.canvas.width = rect.width; Gacha.h = Gacha.canvas.height = rect.height;
                 };
-                window.addEventListener('resize', resize);
-                setTimeout(resize, 100);
-
-                App.Combat.cvs.addEventListener('mousedown', App.Combat.shoot);
-                App.Combat.cvs.addEventListener('touchstart', (e) => {
-                    e.preventDefault(); // 화면 스크롤 방지
-                    // 터치 이벤트를 마우스 이벤트처럼 처리
-                    const touch = e.touches[0];
-                    App.Combat.shoot({ clientX: touch.clientX, clientY: touch.clientY });
-                }, {passive: false});
+                window.addEventListener('resize', resize); resize();
+                requestAnimationFrame(Gacha.loop);
             },
             
-            start: () => {
-                if(App.Combat.loopId) cancelAnimationFrame(App.Combat.loopId);
-                if(App.Combat.spawnerId) clearInterval(App.Combat.spawnerId);
+            execute: async () => {
+                if(App.coin < 1000) return showToast("코인 부족");
+                if(Gacha.state > 0) return;
+                App.coin -= 1000; App.updateUI();
                 
-                App.Combat.targets = []; App.Combat.score = 0; document.getElementById('score-display').innerText = 0;
+                const btn = document.getElementById('btn-pull'); btn.disabled = true;
+                const svgCont = document.getElementById('roulette-svg-container');
+                const nameBox = document.getElementById('item-name');
+                svgCont.style.opacity = '0'; nameBox.style.opacity = '0';
+
+                // 뽑기 결과
+                const pool = Object.values(GAME_ITEMS);
+                let rand = Math.random() * pool.reduce((s,i)=>s+i.weight,0);
+                let item = pool[0];
+                for(let i of pool){ if(rand<i.weight){item=i; break;} rand-=i.weight; }
+
+                // Phase 1: 블랙홀 흡입
+                Gacha.state = 1; Gacha.time = 0;
+                for(let i=0; i<100; i++) Gacha.particles.push({x:Gacha.w/2+Math.cos(i)*200, y:Gacha.h/2+Math.sin(i)*200, a:i, speed:Math.random()*2+1, color:item.color});
+                await new Promise(r=>setTimeout(r, 1500));
+
+                // Phase 2: 대폭발 (광기둥)
+                Gacha.state = 2; Gacha.time = 0; Gacha.particles = [];
+                for(let i=0; i<200; i++) Gacha.particles.push({x:Gacha.w/2, y:Gacha.h/2, vx:(Math.random()-0.5)*30, vy:(Math.random()-0.5)*30, life:1});
                 
-                const wColor = App.equippedItem ? window.GAME_ITEMS[App.equippedItem].color : '#fff';
-                App.Combat.cvs.style.borderColor = wColor;
+                // 화면 번쩍
+                const flash = document.getElementById('flash-bang');
+                flash.style.opacity = '1';
+                setTimeout(()=>flash.style.opacity='0', 100);
 
-                App.Combat.spawnerId = setInterval(App.Combat.spawnEnemy, 1000);
-                App.Combat.loop();
-                showToast("임무 시작.<br>모든 타겟을 제거하십시오.");
-            },
-            
-            spawnEnemy: () => {
-                const types = [
-                    { t: 'minion', hp: 50, color: '#ff003c', size: 40, pts: 1, spd: 1 },
-                    { t: 'brute', hp: 200, color: '#b300ff', size: 60, pts: 5, spd: 0.5 },
-                    { t: 'boss', hp: 1000, color: '#ffcc00', size: 90, pts: 50, spd: 0.2 }
-                ];
-                let type = types[0];
-                if(App.Combat.score > 10 && Math.random() < 0.3) type = types[1];
-                if(App.Combat.score > 30 && Math.random() < 0.1) type = types[2];
+                svgCont.innerHTML = getSVG(item);
+                svgCont.style.opacity = '1'; svgCont.style.transform = 'scale(1.5)';
+                if(item.rank === 'SSR') svgCont.style.filter = `drop-shadow(0 0 50px ${item.color})`;
+                else svgCont.style.filter = `drop-shadow(0 0 20px ${item.color})`;
+                
+                nameBox.innerHTML = `[${item.rank}] ${item.name}`;
+                nameBox.style.color = item.color;
+                nameBox.style.opacity = '1';
+                App.addInv(item.id);
 
-                // 화면 밖으로 나가지 않도록 위치 보정
-                const maxW = App.Combat.cvs.width - type.size;
-                const maxH = App.Combat.cvs.height - type.size;
-                App.Combat.targets.push({
-                    x: Math.random()* (maxW > 0 ? maxW : 0), 
-                    y: Math.random()* (maxH > 0 ? maxH : 0),
-                    ...type, maxHp: type.hp, life: 200 / type.spd
-                });
+                await new Promise(r=>setTimeout(r, 2000));
+                Gacha.state = 0; Gacha.particles = []; btn.disabled = false;
             },
 
             loop: () => {
-                if(!document.getElementById('tab-combat').classList.contains('active')) {
-                    clearInterval(App.Combat.spawnerId); return;
+                const ctx = Gacha.ctx; ctx.clearRect(0,0,Gacha.w,Gacha.h);
+                Gacha.time++;
+                const cx = Gacha.w/2, cy = Gacha.h/2;
+
+                if(Gacha.state === 1) { // 블랙홀 빨려들어감
+                    ctx.fillStyle = `rgba(0,0,0,${Math.min(Gacha.time/50, 0.8)})`; ctx.fillRect(0,0,Gacha.w,Gacha.h);
+                    Gacha.particles.forEach(p => {
+                        p.a += 0.1; const dist = Math.max(0, 200 - Gacha.time*p.speed);
+                        const px = cx + Math.cos(p.a) * dist; const py = cy + Math.sin(p.a) * dist;
+                        ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(px,py,3,0,Math.PI*2); ctx.fill();
+                    });
+                } else if(Gacha.state === 2) { // 광기둥 & 파티클 폭발
+                    const alpha = Math.max(0, 1 - Gacha.time/60);
+                    const gradient = ctx.createLinearGradient(0,0,0,Gacha.h);
+                    gradient.addColorStop(0, 'transparent'); gradient.addColorStop(0.5, `rgba(255,255,255,${alpha})`); gradient.addColorStop(1, 'transparent');
+                    ctx.fillStyle = gradient; ctx.fillRect(cx-100*alpha, 0, 200*alpha, Gacha.h);
+                    
+                    Gacha.particles.forEach(p => {
+                        p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                        if(p.life>0){ ctx.fillStyle=`rgba(255,255,255,${p.life})`; ctx.fillRect(p.x,p.y,4,4); }
+                    });
                 }
-                const ctx = App.Combat.ctx;
-                ctx.clearRect(0,0,App.Combat.cvs.width,App.Combat.cvs.height);
+                requestAnimationFrame(Gacha.loop);
+            }
+        };
+        setTimeout(Gacha.init, 100); // 돔 로드 보장
+
+        /* ==========================================================================
+           [4] PeerJS 멀티플레이 동기화 네트워크
+           ========================================================================== */
+        App.Network = {
+            peer: null, conn: null,
+            log: msg => { const b=document.getElementById('chat-log'); b.innerHTML+=`<div>${msg}</div>`; b.scrollTop=b.scrollHeight; },
+            
+            hostRoom: () => {
+                const code = Math.floor(100+Math.random()*900).toString();
+                document.getElementById('btn-host').style.display = 'none';
+                document.getElementById('host-info').style.display = 'block';
+                document.getElementById('my-code').innerText = code;
                 
-                ctx.strokeStyle = '#111'; ctx.lineWidth = 1;
-                for(let i=0; i<App.Combat.cvs.width; i+=40){ ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,App.Combat.cvs.height); ctx.stroke(); }
-                for(let j=0; j<App.Combat.cvs.height; j+=40){ ctx.beginPath(); ctx.moveTo(0,j); ctx.lineTo(App.Combat.cvs.width,j); ctx.stroke(); }
-
-                for(let i=App.Combat.targets.length-1; i>=0; i--) {
-                    let t = App.Combat.targets[i]; t.life--;
-                    if(t.life<=0) { App.Combat.targets.splice(i,1); continue; }
-                    
-                    ctx.fillStyle = (t.life%10 < 5) ? t.color : '#333';
-                    ctx.fillRect(t.x, t.y, t.size, t.size);
-                    
-                    ctx.fillStyle = '#fff'; const eyeW = t.size/5;
-                    ctx.fillRect(t.x + eyeW, t.y + eyeW, eyeW, eyeW);
-                    ctx.fillRect(t.x + t.size - eyeW*2, t.y + eyeW, eyeW, eyeW);
-
-                    ctx.fillStyle = '#000'; ctx.fillRect(t.x, t.y - 12, t.size, 8);
-                    ctx.fillStyle = t.color; ctx.fillRect(t.x, t.y - 12, (t.hp/t.maxHp)*t.size, 8);
-                }
-                App.Combat.loopId = requestAnimationFrame(App.Combat.loop);
+                App.Network.peer = new Peer("DOOM-3D-" + code);
+                App.Network.peer.on('open', () => App.Network.log(`> 서버 오픈. 코드: ${code}`));
+                App.Network.peer.on('connection', c => {
+                    App.Network.conn = c; App.Network.setup();
+                    App.Network.log(`> 요원 접속됨.`); showToast("상대방 접속 확인.");
+                });
             },
-
-            shoot: (e) => {
-                const r = App.Combat.cvs.getBoundingClientRect();
-                const mx = e.clientX - r.left, my = e.clientY - r.top;
-                
-                const wepRank = App.equippedItem ? window.GAME_ITEMS[App.equippedItem].rank : 'N';
-                AudioSys.shoot(wepRank);
-
-                const dmg = App.stats.baseAtk + (App.equippedItem ? window.GAME_ITEMS[App.equippedItem].atk : 0);
-                const color = App.equippedItem ? window.GAME_ITEMS[App.equippedItem].color : '#fff';
-                
-                spawnFX(r.left + mx, r.top + my, color, 5, 'spark', 15);
-
-                for(let i=App.Combat.targets.length-1; i>=0; i--) {
-                    let t = App.Combat.targets[i];
-                    if(mx>t.x && mx<t.x+t.size && my>t.y && my<t.y+t.size) {
-                        t.hp -= dmg;
-                        if(t.hp<=0) {
-                            spawnFX(r.left + t.x + t.size/2, r.top + t.y + t.size/2, t.color, 30, 'spark', 20);
-                            App.Combat.score += t.pts;
-                            const earned = t.pts * 50;
-                            App.coin += earned; 
-                            App.updateUI();
-                            document.getElementById('score-display').innerText = App.Combat.score;
-                            
-                            if(t.t === 'boss') showToast(`보스 격파!<br>+${earned} COINS`, false);
-                            
-                            App.Combat.targets.splice(i,1);
-                        }
-                        break; 
-                    }
-                }
+            joinRoom: () => {
+                const t = document.getElementById('target-code').value;
+                if(!t) return;
+                App.Network.log(`> 접속 중...`);
+                App.Network.peer = new Peer();
+                setTimeout(() => {
+                    App.Network.conn = App.Network.peer.connect("DOOM-3D-" + t);
+                    App.Network.setup();
+                }, 500);
+            },
+            setup: () => {
+                App.Network.conn.on('open', () => {
+                    document.getElementById('chat-input').disabled = false;
+                    document.getElementById('chat-btn').disabled = false;
+                    App.Network.log(`> 통신 링크 확립됨.`);
+                });
+                App.Network.conn.on('data', d => {
+                    if(d.type === 'START') Engine3D.startMatch();
+                    else if(d.type === 'UPDATE') Engine3D.enemyState = d.data;
+                    else if(d.type === 'HIT') Engine3D.takeDamage(d.dmg);
+                    else App.Network.log(`[상대] ${d}`);
+                });
+            },
+            sendChat: () => {
+                const v = document.getElementById('chat-input').value;
+                if(v && App.Network.conn) { App.Network.conn.send(v); App.Network.log(`[나] ${v}`); document.getElementById('chat-input').value=''; }
+            },
+            hostStartGame: () => {
+                if(App.Network.conn) App.Network.conn.send({type:'START'});
+                Engine3D.startMatch();
             }
         };
 
-        // 전투 캔버스 이벤트 바인딩 호출
-        App.Combat.init();
+        /* ==========================================================================
+           [5] 3D 레이캐스팅 엔진 (Doom Style) & 1:1 온라인 동기화
+           ========================================================================== */
+        const Engine3D = {
+            cvs: null, ctx: null, loopId: null, w:0, h:0,
+            
+            // 10x10 미로 맵 (1: 벽, 0: 통로)
+            map: [
+                [1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,1,0,0,0,0,1],
+                [1,0,1,0,1,0,1,1,0,1],
+                [1,0,1,0,0,0,0,1,0,1],
+                [1,0,0,0,1,1,0,0,0,1],
+                [1,1,1,0,0,0,0,1,0,1],
+                [1,0,0,0,1,1,1,1,0,1],
+                [1,0,1,0,0,0,0,0,0,1],
+                [1,0,0,0,1,1,0,1,0,1],
+                [1,1,1,1,1,1,1,1,1,1]
+            ],
+            
+            p: { x:1.5, y:1.5, dirX:1, dirY:0, planeX:0, planeY:0.66, hp:100 }, // 내 상태
+            enemyState: { x:8.5, y:8.5, active:true }, // 상대방 동기화 상태
+            keys: { w:false, a:false, s:false, d:false, left:false, right:false },
+            zBuffer: [], // 스프라이트 가림 처리용
 
-        // 파라미터 체크로 자동 참가 처리
-        const urlParams = new URLSearchParams(window.location.search);
-        if(urlParams.get('r')) {
-            document.getElementById('target-code').value = urlParams.get('r');
-        }
+            init: () => {
+                Engine3D.cvs = document.getElementById('game-canvas');
+                Engine3D.ctx = Engine3D.cvs.getContext('2d');
+                window.addEventListener('resize', () => {
+                    Engine3D.w = Engine3D.cvs.width = window.innerWidth;
+                    Engine3D.h = Engine3D.cvs.height = window.innerHeight;
+                });
+                window.dispatchEvent(new Event('resize'));
+
+                // 키보드 이동 (FPS 조작)
+                window.addEventListener('keydown', e => {
+                    if(e.key==='w') Engine3D.keys.w=true; if(e.key==='s') Engine3D.keys.s=true;
+                    if(e.key==='a') Engine3D.keys.a=true; if(e.key==='d') Engine3D.keys.d=true;
+                    if(e.key==='ArrowLeft') Engine3D.keys.left=true; if(e.key==='ArrowRight') Engine3D.keys.right=true;
+                    if(e.key==='Escape') Engine3D.leaveMatch();
+                });
+                window.addEventListener('keyup', e => {
+                    if(e.key==='w') Engine3D.keys.w=false; if(e.key==='s') Engine3D.keys.s=false;
+                    if(e.key==='a') Engine3D.keys.a=false; if(e.key==='d') Engine3D.keys.d=false;
+                    if(e.key==='ArrowLeft') Engine3D.keys.left=false; if(e.key==='ArrowRight') Engine3D.keys.right=false;
+                });
+
+                // 마우스 클릭 시 사격 처리
+                document.getElementById('game-view').addEventListener('mousedown', Engine3D.shoot);
+            },
+
+            startMatch: () => {
+                document.getElementById('dashboard-view').style.display = 'none';
+                document.getElementById('game-view').style.display = 'flex';
+                Engine3D.p.hp = 100; document.getElementById('hp-val').innerText = 100; document.getElementById('hp-bar').style.width='100%';
+                
+                // 호스트와 클라이언트 스폰 위치 분리
+                if(App.Network.peer.id.includes("DOOM")) { Engine3D.p.x=1.5; Engine3D.p.y=1.5; }
+                else { Engine3D.p.x=8.5; Engine3D.p.y=8.5; }
+
+                if(!App.eqp) showToast("맨손으로 전투에 진입했습니다!", true);
+
+                Engine3D.loopId = requestAnimationFrame(Engine3D.loop);
+                // 네트워크 동기화 루프 (초당 20번)
+                Engine3D.syncId = setInterval(() => {
+                    if(App.Network.conn) App.Network.conn.send({type:'UPDATE', data:{x:Engine3D.p.x, y:Engine3D.p.y}});
+                }, 50);
+            },
+
+            leaveMatch: () => {
+                cancelAnimationFrame(Engine3D.loopId); clearInterval(Engine3D.syncId);
+                document.getElementById('game-view').style.display = 'none';
+                document.getElementById('dashboard-view').style.display = 'flex';
+            },
+
+            loop: () => {
+                Engine3D.updateMovement();
+                Engine3D.draw3D();
+                Engine3D.loopId = requestAnimationFrame(Engine3D.loop);
+            },
+
+            updateMovement: () => {
+                const moveSpeed = 0.05, rotSpeed = 0.04;
+                const p = Engine3D.p;
+                
+                // 앞뒤 이동 (벽 충돌 체크)
+                if(Engine3D.keys.w) {
+                    if(Engine3D.map[Math.floor(p.x + p.dirX * moveSpeed)][Math.floor(p.y)] === 0) p.x += p.dirX * moveSpeed;
+                    if(Engine3D.map[Math.floor(p.x)][Math.floor(p.y + p.dirY * moveSpeed)] === 0) p.y += p.dirY * moveSpeed;
+                }
+                if(Engine3D.keys.s) {
+                    if(Engine3D.map[Math.floor(p.x - p.dirX * moveSpeed)][Math.floor(p.y)] === 0) p.x -= p.dirX * moveSpeed;
+                    if(Engine3D.map[Math.floor(p.x)][Math.floor(p.y - p.dirY * moveSpeed)] === 0) p.y -= p.dirY * moveSpeed;
+                }
+                // 좌우 스트레이프
+                if(Engine3D.keys.a) {
+                    if(Engine3D.map[Math.floor(p.x - p.planeX * moveSpeed)][Math.floor(p.y)] === 0) p.x -= p.planeX * moveSpeed;
+                    if(Engine3D.map[Math.floor(p.x)][Math.floor(p.y - p.planeY * moveSpeed)] === 0) p.y -= p.planeY * moveSpeed;
+                }
+                if(Engine3D.keys.d) {
+                    if(Engine3D.map[Math.floor(p.x + p.planeX * moveSpeed)][Math.floor(p.y)] === 0) p.x += p.planeX * moveSpeed;
+                    if(Engine3D.map[Math.floor(p.x)][Math.floor(p.y + p.planeY * moveSpeed)] === 0) p.y += p.planeY * moveSpeed;
+                }
+                // 회전 (행렬 연산)
+                if(Engine3D.keys.left || Engine3D.keys.right) {
+                    const dir = Engine3D.keys.right ? -1 : 1;
+                    const r = rotSpeed * dir;
+                    const oldDirX = p.dirX;
+                    p.dirX = p.dirX * Math.cos(r) - p.dirY * Math.sin(r);
+                    p.dirY = oldDirX * Math.sin(r) + p.dirY * Math.cos(r);
+                    const oldPlaneX = p.planeX;
+                    p.planeX = p.planeX * Math.cos(r) - p.planeY * Math.sin(r);
+                    p.planeY = oldPlaneX * Math.sin(r) + p.planeY * Math.cos(r);
+                }
+            },
+
+            draw3D: () => {
+                const ctx = Engine3D.ctx; const w = Engine3D.w; const h = Engine3D.h;
+                
+                // 천장 & 바닥 그리기
+                ctx.fillStyle = '#111'; ctx.fillRect(0,0,w,h/2);
+                ctx.fillStyle = '#222'; ctx.fillRect(0,h/2,w,h/2);
+
+                const p = Engine3D.p;
+                Engine3D.zBuffer = new Array(w).fill(0);
+
+                // 1. 벽 레이캐스팅
+                for(let x=0; x<w; x++) {
+                    const cameraX = 2 * x / w - 1;
+                    const rayDirX = p.dirX + p.planeX * cameraX;
+                    const rayDirY = p.dirY + p.planeY * cameraX;
+
+                    let mapX = Math.floor(p.x); let mapY = Math.floor(p.y);
+                    let sideDistX, sideDistY;
+                    const deltaDistX = Math.abs(1 / rayDirX); const deltaDistY = Math.abs(1 / rayDirY);
+                    let perpWallDist; let stepX, stepY; let hit = 0; let side;
+
+                    if(rayDirX < 0) { stepX = -1; sideDistX = (p.x - mapX) * deltaDistX; }
+                    else { stepX = 1; sideDistX = (mapX + 1.0 - p.x) * deltaDistX; }
+                    if(rayDirY < 0) { stepY = -1; sideDistY = (p.y - mapY) * deltaDistY; }
+                    else { stepY = 1; sideDistY = (mapY + 1.0 - p.y) * deltaDistY; }
+
+                    // DDA 알고리즘 수행
+                    while (hit === 0) {
+                        if(sideDistX < sideDistY) { sideDistX += deltaDistX; mapX += stepX; side = 0; }
+                        else { sideDistY += deltaDistY; mapY += stepY; side = 1; }
+                        if(Engine3D.map[mapX][mapY] > 0) hit = 1;
+                    }
+
+                    if(side === 0) perpWallDist = (mapX - p.x + (1 - stepX) / 2) / rayDirX;
+                    else perpWallDist = (mapY - p.y + (1 - stepY) / 2) / rayDirY;
+
+                    const lineHeight = Math.floor(h / perpWallDist);
+                    const drawStart = -lineHeight / 2 + h / 2;
+                    
+                    // 벽 색상 (깊이에 따라 어두워짐)
+                    const c = side === 1 ? 150 : 200;
+                    const shade = Math.max(0, 1 - perpWallDist/10);
+                    ctx.fillStyle = `rgb(${c*shade}, ${c*shade}, ${(c+50)*shade})`; // 약간 푸른 사이버 느낌
+                    
+                    ctx.fillRect(x, Math.max(0, drawStart), 1, lineHeight);
+                    Engine3D.zBuffer[x] = perpWallDist;
+                }
+
+                // 2. 적 스프라이트 렌더링 (단순 네모난 봇 형태로 임시 렌더)
+                const ex = Engine3D.enemyState.x - p.x; const ey = Engine3D.enemyState.y - p.y;
+                const invDet = 1.0 / (p.planeX * p.dirY - p.dirX * p.planeY);
+                const transformX = invDet * (p.dirY * ex - p.dirX * ey);
+                const transformY = invDet * (-p.planeY * ex + p.planeX * ey); // Z깊이
+                
+                if(transformY > 0) {
+                    const spriteScreenX = Math.floor((w / 2) * (1 + transformX / transformY));
+                    const spriteHeight = Math.abs(Math.floor(h / transformY));
+                    const spriteWidth = Math.abs(Math.floor(h / transformY));
+                    const drawStartY = -spriteHeight / 2 + h / 2;
+                    const drawStartX = -spriteWidth / 2 + spriteScreenX;
+                    const drawEndX = spriteWidth / 2 + spriteScreenX;
+
+                    // 화면 내에 있고 벽에 가려지지 않았다면 그리기 (단순 붉은색 타겟)
+                    for(let stripe = Math.floor(drawStartX); stripe < drawEndX; stripe++) {
+                        if(transformY < Engine3D.zBuffer[stripe] && stripe > 0 && stripe < w) {
+                            ctx.fillStyle = '#f43f5e'; // 적 타겟 컬러
+                            ctx.fillRect(stripe, Math.max(0, drawStartY), 1, spriteHeight);
+                        }
+                    }
+                    
+                    // 조준점 판정용 저장
+                    Engine3D.targetBox = { minX: drawStartX, maxX: drawEndX, depth: transformY };
+                } else { Engine3D.targetBox = null; }
+            },
+
+            shoot: () => {
+                // 총기 반동 애니메이션
+                const wep = document.getElementById('weapon-overlay');
+                wep.style.transform = 'translateY(50px) rotate(5deg)';
+                setTimeout(()=>wep.style.transform='', 100);
+
+                // 화면 중앙(크로스헤어)에 적이 있는지 판정
+                const cx = Engine3D.w / 2;
+                if(Engine3D.targetBox && cx > Engine3D.targetBox.minX && cx < Engine3D.targetBox.maxX && Engine3D.targetBox.depth > 0) {
+                    // 명중!
+                    const dmg = App.eqp ? GAME_ITEMS[App.eqp].atk : 5; // 기본주먹5
+                    if(App.Network.conn) App.Network.conn.send({type:'HIT', dmg: dmg});
+                    
+                    // 명중 이펙트 (십자선 깜빡임)
+                    const cross = document.querySelector('.crosshair');
+                    cross.style.borderColor = '#f43f5e'; setTimeout(()=>cross.style.borderColor='', 100);
+                }
+            },
+
+            takeDamage: (dmg) => {
+                Engine3D.p.hp -= dmg;
+                document.getElementById('hp-val').innerText = Math.max(0, Engine3D.p.hp);
+                document.getElementById('hp-bar').style.width = Math.max(0, Engine3D.p.hp) + '%';
+                
+                // 피격 붉은 오버레이
+                const overlay = document.getElementById('dmg-overlay');
+                overlay.style.opacity = '1'; setTimeout(()=>overlay.style.opacity='0', 200);
+
+                if(Engine3D.p.hp <= 0) {
+                    // 사망 처리
+                    const msg = document.getElementById('kill-msg');
+                    msg.innerText = "YOU DIED"; msg.style.color = '#e11d48'; msg.style.opacity = '1';
+                    setTimeout(() => { msg.style.opacity = '0'; Engine3D.leaveMatch(); }, 3000);
+                }
+            }
+        };
+        Engine3D.init();
+
     </script>
 </body>
 </html>
