@@ -85,7 +85,7 @@
         input.input-modern:focus { border-color: var(--primary); background: rgba(0,0,0,0.6); box-shadow: 0 0 20px rgba(0, 242, 254, 0.2); }
 
         /* 알림창 (반응형 대응) */
-        #toast-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 10000; pointer-events: none; width: calc(100% - 60px); max-width: 350px; }
+        #toast-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 10000; pointer-events: none; width: calc(100% - 60px); max-width: 420px; }
         .toast {
             background: rgba(15, 17, 26, 0.9); border-left: 6px solid var(--primary);
             border-radius: 20px; padding: 18px 24px; font-weight: 800; font-family: var(--font-kr);
@@ -161,7 +161,7 @@
         }
         .skill-node:hover { transform: translateY(-5px); border-color: var(--secondary); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
         .skill-icon { font-size: 3rem; margin-bottom: 15px; filter: drop-shadow(0 0 10px currentColor); }
-        .skill-level { position: absolute; top: 15px; right: 20px; font-family: var(--font-en); font-weight: 900; color: #fff; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 999px; font-size: 0.8rem; }
+        .skill-level { position: absolute; top: 15px; right: 20px; font-family: var(--font-en); font-weight: 900; color: #fff; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 999px; }
 
         /* [핵심 픽스] 가챠 탭 구조 (버튼 절대 겹침 금지) */
         .gacha-wrapper { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; min-height: 60vh; }
@@ -172,7 +172,7 @@
         }
         
         #gacha-vfx { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-        #roulette-svg-container { z-index: 5; width: 180px; height: 180px; display: flex; justify-content: center; align-items: center; opacity: 0; transform: scale(0.5); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; }
+        #roulette-svg-container { z-index: 5; width: 180px; height: 180px; display: flex; justify-content: center; align-items: center; opacity: 0; transform: scale(0.5); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .gacha-name { font-size: 1.8rem; font-weight: 900; margin-top: 20px; opacity: 0; z-index: 5; text-shadow: 0 10px 20px rgba(0,0,0,0.8); text-align: center; pointer-events: none; word-break: keep-all; }
 
         /* 맥박 효과 버튼 */
@@ -198,9 +198,9 @@
         .hp-bar-bg { width: 100%; height: 16px; background: rgba(0,0,0,0.8); border-radius: 999px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
         .hp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); width: 100%; transition: width 0.3s; }
         
-        #weapon-overlay { position: absolute; bottom: -5%; right: 5%; width: 40vh; height: 40vh; pointer-events: none; filter: drop-shadow(-15px 15px 30px rgba(0,0,0,0.9)); transform-origin: bottom right; transition: transform 0.1s; }
+        #weapon-overlay { position: absolute; bottom: -5%; right: 5%; width: 40vh; height: 40vh; pointer-events: none; filter: drop-shadow(-15px 15px 30px rgba(0,0,0,0.9)); transform-origin: bottom right; }
 
-        .damage-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; background: radial-gradient(circle, transparent 40%, rgba(255,8,68,0.4) 100%); opacity: 0; transition: opacity 0.2s; }
+        .damage-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; background: radial-gradient(circle, transparent 40%, rgba(255,8,68,0.4) 100%); opacity: 0; transition: opacity 0.15s; }
         .esc-hint { position: absolute; top: 20px; right: 20px; color: #fff; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 999px; font-weight: bold; font-size: 0.8rem; backdrop-filter: blur(10px); }
 
     </style>
@@ -258,7 +258,7 @@
                         <input type="text" id="target-code" class="input-modern" placeholder="CODE" maxlength="3">
                         <button class="btn-super" onclick="App.Network.joinRoom()" style="padding: 16px 24px;">JOIN</button>
                     </div>
-                    <div id="chat-log" style="background: rgba(0,0,0,0.4); border-radius: 20px; height: 150px; padding: 15px; overflow-y: auto; font-size: 0.9rem; margin-bottom: 15px; color: var(--primary); font-weight: 700;">
+                    <div id="chat-log" style="background: rgba(0,0,0,0.4); border-radius: 20px; height: 150px; padding: 15px; overflow-y: auto; font-size: 0.9rem; margin-bottom: 15px; color: rgba(255,255,255,0.8);">
                         > 보안 연결 대기 중...
                     </div>
                     <div style="display: flex; gap: 10px;">
@@ -292,7 +292,7 @@
                     <div class="skill-level">Lv.<span id="lvl-atk">1</span></div>
                     <div class="skill-icon" style="color:var(--accent);">⚔️</div>
                     <h3 style="color:var(--accent); font-family:var(--font-en); margin-bottom:10px;">DAMAGE CORE</h3>
-                    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">기본 타격 데미지가 증가합니다.<br>현재: <span id="val-atk" style="color:#fff; font-weight:bold;">10</span> DMG</p>
+                    <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">기본 타격 데미지가 증가합니다.<br>현재: <span id="val-atk" style="color:var(--accent); font-weight:900;">10</span></p>
                     <button class="btn-super" style="width:100%; font-size:0.9rem; padding:12px;" onclick="App.Skills.upgrade('atk')">UPGRADE (<span id="cost-atk">1500</span>C)</button>
                 </div>
                 <!-- 노드 2: 행운 -->
@@ -300,7 +300,7 @@
                     <div class="skill-level">Lv.<span id="lvl-luck">1</span></div>
                     <div class="skill-icon" style="color:var(--gold);">🍀</div>
                     <h3 style="color:var(--gold); font-family:var(--font-en); margin-bottom:10px;">LUCK MATRIX</h3>
-                    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">블랙마켓 고등급 등장 확률 증가.<br>현재: +<span id="val-luck" style="color:#fff; font-weight:bold;">0</span>%</p>
+                    <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">블랙마켓 고등급 등장 확률 증가.<br>현재: +<span id="val-luck" style="color:var(--gold); font-weight:900;">0</span>%</p>
                     <button class="btn-super gold" style="width:100%; font-size:0.9rem; padding:12px;" onclick="App.Skills.upgrade('luck')">UPGRADE (<span id="cost-luck">3000</span>C)</button>
                 </div>
                 <!-- 노드 3: 체력 -->
@@ -308,15 +308,15 @@
                     <div class="skill-level">Lv.<span id="lvl-hp">1</span></div>
                     <div class="skill-icon" style="color:var(--emerald);">❤️</div>
                     <h3 style="color:var(--emerald); font-family:var(--font-en); margin-bottom:10px;">VITALITY IMPLANT</h3>
-                    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">3D 전장에서의 최대 체력 증가.<br>현재: <span id="val-hp" style="color:#fff; font-weight:bold;">100</span> HP</p>
-                    <button class="btn-super green" style="background:linear-gradient(135deg, var(--emerald), #059669); width:100%; font-size:0.9rem; padding:12px;" onclick="App.Skills.upgrade('hp')">UPGRADE (<span id="cost-hp">2000</span>C)</button>
+                    <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">3D 전장에서의 최대 체력 증가.<br>현재: <span id="val-hp" style="color:var(--emerald); font-weight:900;">100</span></p>
+                    <button class="btn-super" style="background:linear-gradient(135deg, var(--emerald), #059669); width:100%; font-size:0.9rem; padding:12px;" onclick="App.Skills.upgrade('hp')">UPGRADE (<span id="cost-hp">2000</span>C)</button>
                 </div>
                 <!-- 노드 4: 이속 -->
                 <div class="skill-node">
                     <div class="skill-level">Lv.<span id="lvl-spd">1</span></div>
                     <div class="skill-icon" style="color:var(--primary);">⚡</div>
                     <h3 style="color:var(--primary); font-family:var(--font-en); margin-bottom:10px;">AGILITY SERVO</h3>
-                    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">3D 전장에서의 이동 속도 증가.<br>현재: <span id="val-spd" style="color:#fff; font-weight:bold;">100</span>%</p>
+                    <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">3D 전장에서의 이동 속도 증가.<br>현재: <span id="val-spd" style="color:var(--primary); font-weight:900;">100</span>%</p>
                     <button class="btn-super" style="width:100%; font-size:0.9rem; padding:12px;" onclick="App.Skills.upgrade('spd')">UPGRADE (<span id="cost-spd">2500</span>C)</button>
                 </div>
             </div>
@@ -334,7 +334,7 @@
                 </div>
 
                 <div style="display:flex; flex-direction:column; align-items:center; width:100%;">
-                    <button class="btn-pull-epic" id="btn-pull" onclick="App.Gacha.execute()">EXTRACT WEAPON</button>
+                    <button class="btn-pull-epic" id="btn-pull" onclick="Gacha.execute()">EXTRACT WEAPON</button>
                     <p style="margin-top: 15px; font-weight: 800; color: rgba(255,255,255,0.5); font-family: var(--font-en);">COST: 1000 COINS</p>
                 </div>
             </div>
@@ -365,23 +365,23 @@
         window.GAME_ITEMS = {};
         (function initItems() {
             const TEMPLATES = [
-                { type: "KNIFE", name: "단검", baseAtk: 10, data: "000000001X000000\n00000001X4100000\n0000001X44410000\n000001X444441000\n0000014444441000\n0000014444441000\n0000111122111100\n0000000122100000\n0000000122100000\n0000000122100000\n0000000122100000\n0000000011000000" },
-                { type: "PISTOL", name: "리볼버", baseAtk: 25, data: "0000000110000000\n0000001XX1000000\n000001X44X100000\n0000014334100000\n0000014334100000\n0000014444100000\n0000014444100000\n0000114444110000\n0001221441221000\n0001221111221000\n0001222222221000\n0000111111110000" },
-                { type: "SHOTGUN", name: "샷건", baseAtk: 50, data: "0000001111000000\n000001YXXY100000\n000001Y44Y100000\n0000014334100000\n0000014334100000\n0000114334110000\n0000144334410000\n0001444334441000\n0001222222221000\n0012222222222100\n0012222222222100\n0001111111111000" },
-                { type: "RIFLE", name: "라이플", baseAtk: 80, data: "0000001111000000\n000001YXXY100000\n000011XYYX110000\n000014YXXY410000\n000144YXXY441000\n0001334XX4331000\n0013334XX4333100\n0013334444333100\n0112222222222110\n01222Y2222Y22210\n01222Y2222Y22210\n0011111111111100" }
+                { type: "KNIFE", name: "단검", baseAtk: 10, data: "000000001X000000\n00000001X4100000\n0000001X44410000\n000001X444441000\n0000014444441000\n0000014444441000\n0000111122111100\n0001111111111100\n0001111111111100\n0000111111111000\n0000111111110000\n0000001111000000\n0000000110000000\n0000000010000000" },
+                { type: "PISTOL", name: "리볼버", baseAtk: 25, data: "0000000110000000\n0000001XX1000000\n000001X44X100000\n0000014334100000\n0000014334100000\n0000014444100000\n0000014444100000\n0000111441110000\n0000111111100000\n0000111111100000\n0000011111000000\n0000001110000000\n0000000100000000\n0000000000000000" },
+                { type: "SHOTGUN", name: "샷건", baseAtk: 50, data: "0000001111000000\n000001YXXY100000\n000001Y44Y100000\n0000014334100000\n0000014334100000\n0000114334110000\n0000144334410000\n0000144444410000\n0000111111100000\n0000111111100000\n0000011111000000\n0000001110000000\n0000000100000000\n0000000000000000" },
+                { type: "RIFLE", name: "라이플", baseAtk: 80, data: "0000001111000000\n000001YXXY100000\n000011XYYX110000\n000014YXXY410000\n000144YXXY441000\n0001334XX4331000\n0013334XX4333100\n0011111111111000\n0000111111100000\n0000111111100000\n0000011111000000\n0000001110000000\n0000000100000000\n0000000000000000" }
             ];
 
             const RANKS = [
-                { id: 'N', weight: 500, mul: 1, color: '#94a3b8', pre: ["일반", "보급형"] },
-                { id: 'R', weight: 300, mul: 2.5, color: '#00f2fe', pre: ["전술", "개조된"] },
-                { id: 'SR', weight: 150, mul: 6, color: '#c084fc', pre: ["사이버", "정예"] },
-                { id: 'SSR', weight: 49, mul: 15, color: '#f6d365', pre: ["초차원", "절대"] }
+                { id: 'N', weight: 500, mul: 1, color: '#94a3b8', pre: ['일반', '보급형'] },
+                { id: 'R', weight: 300, mul: 2.5, color: '#00f2fe', pre: ['전술', '개조된'] },
+                { id: 'SR', weight: 150, mul: 6, color: '#c084fc', pre: ['사이버', '정예'] },
+                { id: 'SSR', weight: 49, mul: 15, color: '#f6d365', pre: ['초차원', '절대'] }
             ];
 
             const ELEMS = [
-                { name: "물리", x: '4', y: 'A' }, { name: "화염", x: '9', y: '8' },
-                { name: "빙결", x: '7', y: 'A' }, { name: "맹독", x: '5', y: '7' },
-                { name: "공허", x: '6', y: '9' }
+                { name: '물리', x: '4', y: 'A' }, { name: '화염', x: '9', y: '8' },
+                { name: '빙결', x: '7', y: 'A' }, { name: '맹독', x: '5', y: '7' },
+                { name: '공허', x: '6', y: '9' }
             ];
 
             for (let i = 1; i <= 1000; i++) {
@@ -393,9 +393,13 @@
                 
                 const id = `W_${i.toString().padStart(4, '0')}`;
                 window.GAME_ITEMS[id] = {
-                    id: id, name: `${rObj.pre[Math.floor(Math.random()*2)]} ${el.name} ${base.name}`,
-                    rank: rObj.id, color: rObj.color, atk: Math.floor(base.baseAtk * rObj.mul),
-                    weight: rObj.weight, data: base.data.replace(/X/g, el.x).replace(/Y/g, el.y)
+                    id,
+                    name: `${rObj.pre[Math.floor(Math.random() * 2)]} ${el.name} ${base.name}`,
+                    rank: rObj.id,
+                    color: rObj.color,
+                    atk: Math.floor(base.baseAtk * rObj.mul),
+                    weight: rObj.weight,
+                    data: base.data.replace(/X/g, el.x).replace(/Y/g, el.y)
                 };
             }
         })();
@@ -456,19 +460,17 @@
            [2] 메인 UI 컨트롤 & 스킬트리 엔진
            ========================================================================== */
         const App = {
-            id: "", coin: 10000, inv: [], eqp: null,
-            
-            // 신규: 사이버네틱스 스킬트리 데이터
+            id: '', coin: 10000, inv: [], eqp: null,
             stats: {
                 atk: { lvl: 1, val: 10, cost: 1500, step: 5, mult: 1.5 },
-                luck: { lvl: 1, val: 0, cost: 3000, step: 5, mult: 2.0 }, // % 확률 보정
+                luck: { lvl: 1, val: 0, cost: 3000, step: 5, mult: 2.0 },
                 hp: { lvl: 1, val: 100, cost: 2000, step: 20, mult: 1.6 },
-                spd: { lvl: 1, val: 100, cost: 2500, step: 10, mult: 1.8 } // % 이속 보정
+                spd: { lvl: 1, val: 100, cost: 2500, step: 10, mult: 1.8 }
             },
 
             login: () => {
                 const id = document.getElementById('login-id').value.trim();
-                if(!id) return showToast("요원 코드를 입력하십시오.", true);
+                if(!id) return showToast('요원 코드를 입력하십시오.', true);
                 App.id = id.toUpperCase();
                 document.getElementById('landing-view').style.opacity = '0';
                 setTimeout(() => {
@@ -481,29 +483,29 @@
             switchTab: (t) => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                event.target.classList.add('active'); document.getElementById(`tab-${t}`).classList.add('active');
+                const activeButton = document.querySelector(`.tab-btn[onclick="App.switchTab('${t}')"]`);
+                if (activeButton) activeButton.classList.add('active');
+                const target = document.getElementById(`tab-${t}`);
+                if (target) target.classList.add('active');
             },
             updateUI: () => {
                 document.getElementById('hud-coin').innerText = App.coin.toLocaleString();
-                // 스킬트리 갱신
                 ['atk', 'luck', 'hp', 'spd'].forEach(k => {
                     document.getElementById(`lvl-${k}`).innerText = App.stats[k].lvl;
                     document.getElementById(`val-${k}`).innerText = App.stats[k].val;
                     document.getElementById(`cost-${k}`).innerText = App.stats[k].cost.toLocaleString();
                 });
             },
-            
             Skills: {
                 upgrade: (k) => {
                     const st = App.stats[k];
-                    if(App.coin < st.cost) return showToast("코인이 부족합니다.", true);
+                    if(App.coin < st.cost) return showToast('코인이 부족합니다.', true);
                     App.coin -= st.cost;
                     st.val += st.step; st.lvl++; st.cost = Math.floor(st.cost * st.mult);
                     AudioSys.upgrade(); showToast(`업그레이드 완료! (Lv.${st.lvl})`);
                     App.updateUI();
                 }
             },
-
             addInv: (id) => { if(!App.inv.includes(id)) App.inv.push(id); App.renderInv(); },
             renderInv: () => {
                 const grid = document.getElementById('inventory-grid'); grid.innerHTML = '';
@@ -542,7 +544,7 @@
                 requestAnimationFrame(Gacha.loop);
             },
             execute: async () => {
-                if(App.coin < 1000) return showToast("코인이 부족합니다.", true);
+                if(App.coin < 1000) return showToast('코인이 부족합니다.', true);
                 if(Gacha.state > 0) return;
                 App.coin -= 1000; App.updateUI();
                 
@@ -551,11 +553,10 @@
                 const nameBox = document.getElementById('item-name');
                 svgCont.style.opacity = '0'; nameBox.style.opacity = '0';
 
-                // 확률 연산 (행운 스탯 반영: 스킬트리 luck val에 따라 SR/SSR 확률 증가)
                 const pool = Object.values(GAME_ITEMS);
                 let rand = Math.random() * pool.reduce((s,i) => {
                     let w = i.weight;
-                    if(i.rank==='SR' || i.rank==='SSR') w *= (1 + (App.stats.luck.val / 100)); // 행운 적용
+                    if(i.rank==='SR' || i.rank==='SSR') w *= (1 + (App.stats.luck.val / 100));
                     return s + w;
                 }, 0);
                 
@@ -608,6 +609,7 @@
                 requestAnimationFrame(Gacha.loop);
             }
         };
+        App.Gacha = Gacha;
         setTimeout(Gacha.init, 100);
 
         /* ==========================================================================
@@ -619,17 +621,17 @@
             hostRoom: () => {
                 const code = Math.floor(100+Math.random()*900).toString();
                 document.getElementById('btn-host').style.display = 'none'; document.getElementById('host-info').style.display = 'block'; document.getElementById('my-code').innerText = code;
-                App.Network.peer = new Peer("DOOM-NEO-" + code);
+                App.Network.peer = new Peer('DOOM-NEO-' + code);
                 App.Network.peer.on('open', () => App.Network.log(`> 서버 오픈. 코드: ${code}`));
-                App.Network.peer.on('connection', c => { App.Network.conn = c; App.Network.setup(); App.Network.log(`> 상대방 접속됨.`); showToast("상대방 접속됨!"); });
+                App.Network.peer.on('connection', c => { App.Network.conn = c; App.Network.setup(); App.Network.log('> 상대방 접속됨.'); showToast('상대방 접속됨!'); });
             },
             joinRoom: () => {
                 const t = document.getElementById('target-code').value; if(!t) return;
-                App.Network.log(`> 접속 중...`); App.Network.peer = new Peer();
-                setTimeout(() => { App.Network.conn = App.Network.peer.connect("DOOM-NEO-" + t); App.Network.setup(); }, 500);
+                App.Network.log('> 접속 중...'); App.Network.peer = new Peer();
+                setTimeout(() => { App.Network.conn = App.Network.peer.connect('DOOM-NEO-' + t); App.Network.setup(); }, 500);
             },
             setup: () => {
-                App.Network.conn.on('open', () => { document.getElementById('chat-input').disabled = false; document.getElementById('chat-btn').disabled = false; App.Network.log(`> 통신 링크 확립됨.`); });
+                App.Network.conn.on('open', () => { document.getElementById('chat-input').disabled = false; document.getElementById('chat-btn').disabled = false; App.Network.log('> 통신 링크 활성화'); });
                 App.Network.conn.on('data', d => {
                     if(d.type === 'START') Engine3D.startMatch();
                     else if(d.type === 'UPDATE') Engine3D.enemyState = d.data;
@@ -642,12 +644,24 @@
         };
 
         const Engine3D = {
-            cvs: null, ctx: null, loopId: null, w:0, h:0,
-            map: [ [1,1,1,1,1,1,1,1,1,1], [1,0,0,0,1,0,0,0,0,1], [1,0,1,0,1,0,1,1,0,1], [1,0,1,0,0,0,0,1,0,1], [1,0,0,0,1,1,0,0,0,1], [1,1,1,0,0,0,0,1,0,1], [1,0,0,0,1,1,1,1,0,1], [1,0,1,0,0,0,0,0,0,1], [1,0,0,0,1,1,0,1,0,1], [1,1,1,1,1,1,1,1,1,1] ],
+            cvs: null, ctx: null, loopId: null, syncId: null, w:0, h:0,
+            map: [
+                [1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,1,0,0,0,0,1],
+                [1,0,1,0,1,0,1,1,0,1],
+                [1,0,1,0,0,0,0,1,0,1],
+                [1,0,0,0,1,1,0,0,0,1],
+                [1,1,1,0,0,0,0,1,0,1],
+                [1,0,0,0,1,1,1,1,0,1],
+                [1,0,1,0,0,0,0,0,0,1],
+                [1,0,1,1,1,0,1,1,0,1],
+                [1,1,1,1,1,1,1,1,1,1]
+            ],
             p: { x:1.5, y:1.5, dirX:1, dirY:0, planeX:0, planeY:0.66, hp:100 },
             enemyState: { x:8.5, y:8.5, active:true },
             keys: { w:false, a:false, s:false, d:false, left:false, right:false },
             zBuffer: [],
+            targetBox: null,
 
             init: () => {
                 Engine3D.cvs = document.getElementById('game-canvas'); Engine3D.ctx = Engine3D.cvs.getContext('2d');
@@ -667,24 +681,23 @@
             },
             startMatch: () => {
                 document.getElementById('dashboard-view').style.display = 'none'; document.getElementById('game-view').style.display = 'flex';
-                // 스킬트리 스탯 적용 (HP)
                 Engine3D.p.hp = App.stats.hp.val; 
                 document.getElementById('hp-max').innerText = App.stats.hp.val;
                 document.getElementById('hp-val').innerText = App.stats.hp.val; 
                 document.getElementById('hp-bar').style.width='100%';
                 
-                if(App.Network.peer.id.includes("DOOM")) { Engine3D.p.x=1.5; Engine3D.p.y=1.5; } else { Engine3D.p.x=8.5; Engine3D.p.y=8.5; }
-                if(!App.eqp) showToast("무기 없이 진입했습니다!", true);
+                if(App.Network.peer && App.Network.peer.id.includes('DOOM')) { Engine3D.p.x=1.5; Engine3D.p.y=1.5; } else { Engine3D.p.x=8.5; Engine3D.p.y=8.5; }
+                if(!App.eqp) showToast('무기 없이 진입했습니다!', true);
                 Engine3D.loopId = requestAnimationFrame(Engine3D.loop);
                 Engine3D.syncId = setInterval(() => { if(App.Network.conn) App.Network.conn.send({type:'UPDATE', data:{x:Engine3D.p.x, y:Engine3D.p.y}}); }, 50);
             },
             leaveMatch: () => {
-                cancelAnimationFrame(Engine3D.loopId); clearInterval(Engine3D.syncId);
+                if (Engine3D.loopId) cancelAnimationFrame(Engine3D.loopId);
+                if (Engine3D.syncId) clearInterval(Engine3D.syncId);
                 document.getElementById('game-view').style.display = 'none'; document.getElementById('dashboard-view').style.display = 'flex';
             },
             loop: () => { Engine3D.updateMovement(); Engine3D.draw3D(); Engine3D.loopId = requestAnimationFrame(Engine3D.loop); },
             updateMovement: () => {
-                // 스킬트리 스탯 적용 (이동속도 % 보정)
                 const ms = 0.05 * (App.stats.spd.val / 100); 
                 const rs = 0.04; const p = Engine3D.p;
                 if(Engine3D.keys.w) { if(Engine3D.map[Math.floor(p.x + p.dirX * ms)][Math.floor(p.y)] === 0) p.x += p.dirX * ms; if(Engine3D.map[Math.floor(p.x)][Math.floor(p.y + p.dirY * ms)] === 0) p.y += p.dirY * ms; }
@@ -762,7 +775,7 @@
                 const overlay = document.getElementById('dmg-overlay');
                 overlay.style.opacity = '1'; setTimeout(()=>overlay.style.opacity='0', 200);
                 if(Engine3D.p.hp <= 0) {
-                    showToast("YOU DIED. 매치 종료", true);
+                    showToast('YOU DIED. 매치 종료', true);
                     Engine3D.leaveMatch();
                 }
             }
