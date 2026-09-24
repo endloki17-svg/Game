@@ -57,7 +57,7 @@
 
         /* ---------------- [VIEW 2] 대시보드 ---------------- */
         #dashboard-view { display: none; width: 100vw; height: 100vh; flex-direction: column; background: #000; }
-        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: #050505; border-bottom: 2px solid var(--neon-green); box-shadow: 0 0 30px rgba(51,255,0,0.2); z-index: 10; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: #050505; border-bottom: 2px solid var(--neon-green); box-shadow: 0 0 30px rgba(51,255,0,0.2); z-index: 100; position:relative; }
         .nav-tabs { display: flex; gap: 15px; }
         .tab-btn { background: transparent; color: #666; border: 1px solid #444; padding: 12px 20px; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
         .tab-btn.active { color: #000; background: var(--neon-green); border-color: var(--neon-green); box-shadow: 0 0 20px var(--neon-green); transform: translateY(-2px); }
@@ -82,6 +82,7 @@
         .gacha-stage {
             position: relative; width: 100%; max-width: 800px; height: 600px;
             display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+            pointer-events: auto;
         }
         
         /* 차원 포털(블랙홀) 효과 */
@@ -91,7 +92,7 @@
             background: conic-gradient(from 0deg, transparent 0%, rgba(0, 255, 255, 0.2) 20%, transparent 40%, rgba(255, 0, 255, 0.2) 60%, transparent 80%);
             box-shadow: 0 0 50px rgba(0,0,0,0.9), inset 0 0 50px rgba(0,0,0,0.9);
             opacity: 0; transition: opacity 1s, transform 3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; justify-content: center; align-items: center; z-index: 1;
+            display: flex; justify-content: center; align-items: center; z-index: 1; pointer-events: none;
         }
         .portal-core.active { opacity: 1; animation: spinPortal 2s linear infinite; }
         .portal-core.furious { animation: spinPortal 0.2s linear infinite, portalPulse 0.1s infinite; filter: brightness(2) contrast(1.5); }
@@ -101,18 +102,15 @@
 
         /* 픽셀 무기 렌더러 */
         #roulette-item {
-            width: 200px; height: 200px; z-index: 2; position: absolute;
+            width: 200px; height: 200px; z-index: 5; position: absolute;
             top: 150px; left: 50%; margin-left: -100px;
-            transition: transform 0.2s; opacity: 0;
+            transition: transform 0.2s; opacity: 0; pointer-events: none;
         }
         
-        /* 1. 실루엣 빙의 상태 */
         .silhouette-mode { filter: brightness(0) drop-shadow(0 0 10px rgba(255,0,0,0.8)); opacity: 1 !important; transform: scale(0.8); }
-        /* 2. 극강의 빠른 교차 상태 */
         .chaos-mode { filter: brightness(0) drop-shadow(0 0 30px #fff); opacity: 1 !important; transform: scale(1.1); animation: chaosJitter 0.05s infinite; }
         @keyframes chaosJitter { 0% { transform: scale(1.1) translate(3px, -3px); } 50% { transform: scale(1.2) translate(-3px, 3px); } 100% { transform: scale(1.1) translate(-2px, -2px); } }
 
-        /* 3. 최종 확정 연출 (SSR은 미친듯한 발광) */
         .reveal-N { filter: drop-shadow(0 0 15px #aaa); opacity: 1 !important; transform: scale(1.2); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .reveal-R { filter: drop-shadow(0 0 30px var(--neon-blue)); opacity: 1 !important; transform: scale(1.4); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .reveal-SR { filter: drop-shadow(0 0 60px var(--neon-purple)) contrast(1.2); opacity: 1 !important; transform: scale(1.6); animation: floatItem 2s ease-in-out infinite; }
@@ -121,20 +119,26 @@
         @keyframes floatItem { 0%, 100% { transform: scale(1.6) translateY(0); } 50% { transform: scale(1.6) translateY(-20px); } }
         @keyframes floatItemSSR { 0% { transform: scale(2.0) translateY(0) rotate(0deg); } 25% { transform: scale(2.0) translateY(-5px) rotate(1deg); } 75% { transform: scale(2.0) translateY(5px) rotate(-1deg); } 100% { transform: scale(2.0) translateY(0) rotate(0deg); } }
 
+        /* [핵심 수정: 버튼 최상단 배치 및 이펙트] */
         .btn-pull-epic {
-            position: relative; z-index: 10;
+            position: relative; z-index: 100;
             background: linear-gradient(180deg, #ff0055, #880022); border: 4px solid #fff;
             padding: 25px 60px; font-size: 2.5rem; color: #fff; cursor: pointer; font-family: 'Press Start 2P';
-            box-shadow: 0 15px 0 #440011, 0 0 30px #ff0055; transition: 0.1s; border-radius: 10px;
-            text-shadow: 2px 2px 0 #000;
+            box-shadow: 0 15px 0 #440011, 0 0 30px #ff0055; transition: all 0.1s; border-radius: 10px;
+            text-shadow: 2px 2px 0 #000; margin-bottom: 20px;
         }
-        .btn-pull-epic:active { transform: translateY(15px); box-shadow: 0 0 0 #440011, 0 0 50px #ff0055; }
+        .btn-pull-epic:hover {
+            background: linear-gradient(180deg, #ff3377, #aa0033);
+            box-shadow: 0 15px 0 #440011, 0 0 50px #ff0055;
+            transform: scale(1.02);
+        }
+        .btn-pull-epic:active { transform: translateY(15px) scale(0.98); box-shadow: 0 0 0 #440011, 0 0 50px #ff0055; }
         .btn-pull-epic.disabled { filter: grayscale(1); pointer-events: none; transform: translateY(15px); box-shadow: 0 0 0 #222; }
 
         .glitch-item-name {
             font-size: 3rem; margin-top: 40px; opacity: 0; font-family: 'Noto Sans KR', sans-serif; font-weight: 900;
             text-transform: uppercase; letter-spacing: 5px; z-index: 10; position: absolute; bottom: 150px;
-            text-align: center; width: 100%; text-shadow: 0 0 20px currentColor, 0 0 10px #000;
+            text-align: center; width: 100%; text-shadow: 0 0 20px currentColor, 0 0 10px #000; pointer-events: none;
         }
 
         /* ---------------- [TAB 4: PLAY 미니게임] ---------------- */
@@ -182,7 +186,7 @@
             </div>
         </header>
 
-        <!-- 탭 1 & 2 (간략히 통합 배치) -->
+        <!-- 탭 1 -->
         <div id="tab-lobby" class="tab-content active">
             <h2 class="section-title pixel-text" style="color:var(--neon-blue);">COMMAND CENTER</h2>
             <div class="card-grid">
@@ -204,6 +208,7 @@
             </div>
         </div>
 
+        <!-- 탭 2 -->
         <div id="tab-shop" class="tab-content">
             <h2 class="section-title pixel-text" style="color:var(--neon-green);">ARMORY UPGRADES</h2>
             <div class="card-grid">
@@ -233,8 +238,9 @@
                 <div id="roulette-item"></div>
                 <div id="item-name" class="glitch-item-name"></div>
                 
+                <!-- 수정됨: 버튼 최상단 배치 및 onclick 정상 작동 -->
                 <button class="btn-pull-epic" id="btn-pull" onclick="executeEpicGacha()">EXTRACT WEAPON</button>
-                <p style="margin-top:30px; font-family:'Press Start 2P'; color:var(--neon-gold);">COST: 1000 COINS</p>
+                <p style="margin-top:10px; font-family:'Press Start 2P'; color:var(--neon-gold); text-shadow:0 0 10px #000; z-index:100;">COST: 1000 COINS</p>
             </div>
         </div>
 
@@ -290,13 +296,13 @@
         
         const SoundEngine = {
             playHeartbeat: () => {
+                if(AC.state === 'suspended') AC.resume();
                 const now = AC.currentTime;
                 const osc = AC.createOscillator();
                 const gain = AC.createGain();
                 osc.connect(gain); gain.connect(AC.destination);
-                osc.type = 'sine'; osc.frequency.setValueAtTime(50, now); // 초저음
+                osc.type = 'sine'; osc.frequency.setValueAtTime(50, now);
                 
-                // 심장 박동 엔벨로프 (두 번 뜀)
                 gain.gain.setValueAtTime(0, now);
                 gain.gain.linearRampToValueAtTime(0.8, now + 0.1);
                 gain.gain.exponentialRampToValueAtTime(0.1, now + 0.3);
@@ -306,6 +312,7 @@
                 osc.start(now); osc.stop(now + 1);
             },
             playRiser: (durationSec) => {
+                if(AC.state === 'suspended') AC.resume();
                 const now = AC.currentTime;
                 const osc = AC.createOscillator();
                 const gain = AC.createGain();
@@ -313,7 +320,7 @@
                 
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(50, now);
-                osc.frequency.exponentialRampToValueAtTime(2000, now + durationSec); // 피치 급상승
+                osc.frequency.exponentialRampToValueAtTime(2000, now + durationSec);
                 
                 gain.gain.setValueAtTime(0, now);
                 gain.gain.linearRampToValueAtTime(0.3, now + durationSec - 0.2);
@@ -322,54 +329,38 @@
                 osc.start(now); osc.stop(now + durationSec);
             },
             playExplosion: () => {
+                if(AC.state === 'suspended') AC.resume();
                 const now = AC.currentTime;
-                // 화이트 노이즈 생성
-                const bufferSize = AC.sampleRate * 2; // 2초
+                const bufferSize = AC.sampleRate * 2;
                 const buffer = AC.createBuffer(1, bufferSize, AC.sampleRate);
                 const data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
                 
-                const noise = AC.createBufferSource();
-                noise.buffer = buffer;
+                const noise = AC.createBufferSource(); noise.buffer = buffer;
+                const filter = AC.createBiquadFilter(); filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1000, now); filter.frequency.exponentialRampToValueAtTime(50, now + 1.5);
                 
-                // 필터로 웅장함(Lowpass) 추가
-                const filter = AC.createBiquadFilter();
-                filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(1000, now);
-                filter.frequency.exponentialRampToValueAtTime(50, now + 1.5);
-                
-                const gain = AC.createGain();
-                gain.gain.setValueAtTime(1, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
-                
-                noise.connect(filter); filter.connect(gain); gain.connect(AC.destination);
-                noise.start(now);
+                const gain = AC.createGain(); gain.gain.setValueAtTime(1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+                noise.connect(filter); filter.connect(gain); gain.connect(AC.destination); noise.start(now);
             },
             playEpicSSRChord: () => {
+                if(AC.state === 'suspended') AC.resume();
                 const now = AC.currentTime;
-                const frequencies = [261.63, 329.63, 392.00, 523.25]; // C E G C (웅장한 메이저 코드)
-                frequencies.forEach(freq => {
-                    const osc = AC.createOscillator();
-                    const gain = AC.createGain();
+                [261.63, 329.63, 392.00, 523.25].forEach(freq => {
+                    const osc = AC.createOscillator(); const gain = AC.createGain();
                     osc.connect(gain); gain.connect(AC.destination);
-                    
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(freq, now);
-                    
-                    gain.gain.setValueAtTime(0, now);
-                    gain.gain.linearRampToValueAtTime(0.2, now + 0.1);
+                    osc.type = 'square'; osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.2, now + 0.1);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 3);
-                    
                     osc.start(now); osc.stop(now + 3);
                 });
             },
             playGunshot: () => {
+                if(AC.state === 'suspended') AC.resume();
                 const now = AC.currentTime;
-                const osc = AC.createOscillator();
-                const gain = AC.createGain();
+                const osc = AC.createOscillator(); const gain = AC.createGain();
                 osc.connect(gain); gain.connect(AC.destination);
-                osc.type = 'square'; osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(10, now + 0.1);
+                osc.type = 'square'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(10, now + 0.1);
                 gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0, now + 0.1);
                 osc.start(now); osc.stop(now + 0.1);
             }
@@ -396,8 +387,7 @@
             }
             update() {
                 this.x += this.vx; this.y += this.vy; this.life -= this.decay;
-                if (this.type === 'spark') { this.vy += 0.5; } // 중력 적용
-                // 바닥 바운스 연산
+                if (this.type === 'spark') { this.vy += 0.5; }
                 if (this.y > vfxCanvas.height - 10) { this.y = vfxCanvas.height - 10; this.vy *= -0.6; }
             }
             draw(ctx) {
@@ -451,7 +441,9 @@
             nameBox.style.opacity = '0';
             itemBox.className = '';
             itemBox.innerHTML = '';
-            document.body.style.backgroundColor = "#000"; // 암전
+            
+            // 기존의 자바스크립트 버그를 일으키던 라인을 안전하게 수정
+            document.body.style.backgroundColor = "#000000"; 
 
             // 결과 사전 계산 (행운 스탯 반영)
             let pool = GACHA_POOL.map(i => {
@@ -471,43 +463,41 @@
             SoundEngine.playHeartbeat();
             portal.className = 'portal-core active';
             
-            await sleep(1500); // 박동 대기
+            await sleep(1500); 
             SoundEngine.playHeartbeat();
-            
             await sleep(1000);
 
             // ---------------- [PHASE 2: 차원 폭주 & 실루엣 교차] ----------------
             document.body.classList.remove('shake-light');
             document.body.classList.add('shake-heavy');
             portal.className = 'portal-core furious';
-            SoundEngine.playRiser(3.0); // 3초간 피치 상승
+            SoundEngine.playRiser(3.0); 
             
-            itemBox.className = 'chaos-mode'; // 미친듯한 교차 시작
+            itemBox.className = 'chaos-mode'; 
             
             let chaosInterval = setInterval(() => {
                 let randID = GACHA_POOL[Math.floor(Math.random()*GACHA_POOL.length)].id;
                 itemBox.innerHTML = renderPixelSVG(randID);
-            }, 50); // 50ms마다 렌더링 변경
+            }, 50); 
 
             await sleep(3000);
             clearInterval(chaosInterval);
 
             // ---------------- [PHASE 3: 붕괴 및 섬광 (Flashbang)] ----------------
             document.body.classList.remove('shake-heavy');
-            portal.className = 'portal-core'; // 포털 닫기
+            portal.className = 'portal-core'; 
             
             const flash = document.getElementById('flash-bang');
             flash.style.opacity = '1';
             SoundEngine.playExplosion();
             
-            await sleep(100); // 0.1초 섬광 유지
+            await sleep(100); 
             
-            // 실루엣 걷어내고 정답 무기 장착
             itemBox.innerHTML = renderPixelSVG(resultData.id);
             itemBox.className = `reveal-${finalItem.rank}`;
             
-            flash.style.opacity = '0'; // 섬광 서서히 걷힘
-            flash.style.transition = 'opacity 2s'; // 페이드아웃 길게
+            flash.style.opacity = '0'; 
+            flash.style.transition = 'opacity 2s'; 
             
             // ---------------- [PHASE 4: 랭크별 이펙트 렌더링] ----------------
             const cx = window.innerWidth / 2;
@@ -515,10 +505,10 @@
 
             if(finalItem.rank === 'SSR') {
                 SoundEngine.playEpicSSRChord();
-                spawnExplosion(cx, cy, '#ffcc00', 3, 'shockwave', 0); // 거대 쇽웨이브
-                spawnExplosion(cx, cy, '#ffaa00', 300, 'spark', 40); // 수백개의 불꽃
+                spawnExplosion(cx, cy, '#ffcc00', 3, 'shockwave', 0);
+                spawnExplosion(cx, cy, '#ffaa00', 300, 'spark', 40);
                 spawnExplosion(cx, cy, '#ffffff', 100, 'spark', 50);
-                document.body.style.backgroundColor = "#220000"; // 붉은 핏빛 배경
+                document.body.style.backgroundColor = "#220000"; 
             } else if (finalItem.rank === 'SR') {
                 spawnExplosion(cx, cy, '#b300ff', 1, 'shockwave', 0);
                 spawnExplosion(cx, cy, '#ff00ff', 150, 'spark', 30);
@@ -543,12 +533,11 @@
                     else currentText += glitchStr[Math.floor(Math.random()*glitchStr.length)];
                 }
                 nameBox.innerText = currentText;
-                revealIdx += 0.5; // 천천히 글자가 맞춰짐
+                revealIdx += 0.5; 
                 if(revealIdx > targetText.length) {
                     clearInterval(txtInterval);
                     nameBox.innerText = targetText;
                     
-                    // 네트워크 전송
                     if(conn && conn.open && ['SR','SSR'].includes(finalItem.rank)) {
                         conn.send(`[SYSTEM ALERT] 요원 ${agentId} 가 [${finalItem.rank}] ${finalItem.name} 획득!!!`);
                     }
@@ -556,8 +545,9 @@
                     setTimeout(() => {
                         btn.classList.remove('disabled');
                         isRolling = false;
-                        flash.style.transition = 'opacity 0.1s'; // 원복
-                        document.body.style.backgroundColor = var(--bg-dark);
+                        flash.style.transition = 'opacity 0.1s'; 
+                        // 오류를 제거한 정상적인 백그라운드 원상복구
+                        document.body.style.backgroundColor = ""; 
                     }, 1000);
                 }
             }, 50);
@@ -642,7 +632,6 @@
             if(!document.getElementById('tab-play').classList.contains('active')) return clearInterval(gameInterval);
             playCtx.clearRect(0,0,playCanvas.width,playCanvas.height);
             
-            // 격자 배경 렌더링
             playCtx.strokeStyle = '#220000'; playCtx.lineWidth = 1;
             for(let i=0; i<playCanvas.width; i+=50) { playCtx.beginPath(); playCtx.moveTo(i,0); playCtx.lineTo(i,playCanvas.height); playCtx.stroke(); }
             for(let j=0; j<playCanvas.height; j+=50) { playCtx.beginPath(); playCtx.moveTo(0,j); playCtx.lineTo(playCanvas.width,j); playCtx.stroke(); }
@@ -663,7 +652,6 @@
             const mx = e.clientX - r.left, my = e.clientY - r.top;
             SoundEngine.playGunshot();
             
-            // 미니 쇽웨이브
             const rect = playCanvas.getBoundingClientRect();
             spawnExplosion(rect.left + mx, rect.top + my, '#ffff00', 5, 'spark', 10);
 
