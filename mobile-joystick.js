@@ -1,77 +1,190 @@
-/* Mobile FPS controls, reload, exit and weapon projectile effects. */
 (function () {
   'use strict';
-  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-  const isSmallScreen = () => window.matchMedia('(max-width: 900px)').matches;
-  if (!isTouch && !isSmallScreen()) return;
+
+  const mobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || ('ontouchstart' in window);
+  if (!mobile) return;
 
   const style = document.createElement('style');
   style.textContent = `
-    #mobile-controls { position:fixed; inset:0; z-index:9000; display:none; pointer-events:none; touch-action:none; }
-    #mobile-controls.active { display:block; }
-    .mobile-stick { position:absolute; bottom:calc(24px + env(safe-area-inset-bottom)); width:150px; height:150px; border:2px solid rgba(255,255,255,.42); border-radius:50%; background:rgba(5,12,24,.58); box-shadow:0 0 28px rgba(0,242,254,.25), inset 0 0 24px rgba(255,255,255,.08); pointer-events:auto; touch-action:none; }
-    #mobile-move-stick { left:calc(20px + env(safe-area-inset-left)); }
-    #mobile-look-stick { right:calc(20px + env(safe-area-inset-right)); }
-    .mobile-stick::before { content:''; position:absolute; inset:17px; border:1px dashed rgba(255,255,255,.22); border-radius:50%; }
-    .mobile-stick::after { content:''; position:absolute; left:50%; top:50%; width:62px; height:62px; margin:-31px; border-radius:50%; background:linear-gradient(135deg,rgba(0,242,254,.9),rgba(79,172,254,.55)); box-shadow:0 0 22px rgba(0,242,254,.65); transform:translate(var(--dx,0),var(--dy,0)); }
-    .mobile-action { position:absolute; width:72px; height:72px; border-radius:50%; color:#fff; font-weight:900; border:2px solid rgba(255,255,255,.45); box-shadow:0 5px 18px rgba(0,0,0,.45); pointer-events:auto; touch-action:none; }
-    #mobile-fire { right:30px; bottom:calc(195px + env(safe-area-inset-bottom)); background:rgba(255,8,68,.55); border-color:#ff0844; }
-    #mobile-reload { right:122px; bottom:calc(125px + env(safe-area-inset-bottom)); width:58px; height:58px; background:rgba(246,211,101,.42); color:#fff; font-size:11px; }
-    #mobile-exit { top:calc(18px + env(safe-area-inset-top)); right:18px; width:auto; height:auto; padding:10px 16px; border-radius:999px; background:rgba(255,8,68,.7); }
-    #game-ammo { position:absolute; right:24px; top:calc(64px + env(safe-area-inset-top)); z-index:20; padding:9px 14px; border-radius:14px; background:rgba(0,0,0,.64); color:#fff; font:bold 15px Outfit,sans-serif; pointer-events:none; }
-    #projectile-effects { position:absolute; inset:0; z-index:8; pointer-events:none; }
-    @media (min-width:901px) { #mobile-controls { display:none !important; } }
+    #mobile-controls {
+      position: fixed; inset: 0; z-index: 9000; display: none; pointer-events: none; touch-action: none;
+    }
+    #mobile-controls.active { display: block; }
+    .mobile-stick {
+      position: absolute; bottom: calc(26px + env(safe-area-inset-bottom)); width: 150px; height: 150px;
+      border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: rgba(10,15,25,.48);
+      box-shadow: 0 0 25px rgba(0,242,254,.18), inset 0 0 20px rgba(255,255,255,.08);
+      pointer-events: auto; touch-action: none;
+    }
+    .mobile-stick::before {
+      content: ''; position: absolute; inset: 16px; border: 1px dashed rgba(255,255,255,.18); border-radius: 50%;
+    }
+    .mobile-stick::after {
+      content: ''; position: absolute; left: 50%; top: 50%; width: 62px; height: 62px; margin: -31px;
+      border-radius: 50%; background: linear-gradient(135deg, rgba(0,242,254,.9), rgba(79,172,254,.5));
+      box-shadow: 0 0 18px rgba(0,242,254,.6); transform: translate(var(--dx, 0), var(--dy, 0));
+    }
+    #mobile-move-stick { left: calc(18px + env(safe-area-inset-left)); }
+    #mobile-look-stick { right: calc(18px + env(safe-area-inset-right)); }
+
+    .mobile-action {
+      position: absolute; border: 2px solid rgba(255,255,255,.4); border-radius: 50%;
+      background: rgba(255,255,255,.08); color: #fff; font-weight: 900; pointer-events: auto; touch-action: none;
+      box-shadow: 0 8px 16px rgba(0,0,0,.28);
+    }
+    #mobile-fire {
+      right: 32px; bottom: calc(175px + env(safe-area-inset-bottom)); width: 78px; height: 78px;
+      background: rgba(255,8,68,.5); border-color: rgba(255,8,68,.9);
+    }
+    #mobile-reload {
+      right: 118px; bottom: calc(110px + env(safe-area-inset-bottom)); width: 60px; height: 60px;
+      background: rgba(246,211,101,.4); border-color: rgba(246,211,101,.9); font-size: 11px;
+    }
+    #mobile-exit {
+      top: calc(18px + env(safe-area-inset-top)); right: 18px; width: auto; height: auto;
+      padding: 10px 16px; border-radius: 999px; background: rgba(255,8,68,.7); border-color: rgba(255,8,68,.9);
+    }
+
+    @media (min-width: 901px) { #mobile-controls { display: none !important; } }
   `;
   document.head.appendChild(style);
 
   const controls = document.createElement('div');
   controls.id = 'mobile-controls';
   controls.innerHTML = `
-    <div id="mobile-move-stick" class="mobile-stick" aria-label="이동 조이스틱"></div>
-    <div id="mobile-look-stick" class="mobile-stick" aria-label="시점 조이스틱"></div>
+    <div id="mobile-move-stick" class="mobile-stick"></div>
+    <div id="mobile-look-stick" class="mobile-stick"></div>
     <button id="mobile-fire" class="mobile-action" type="button">FIRE</button>
-    <button id="mobile-reload" class="mobile-action" type="button">RELOAD</button>
-    <button id="mobile-exit" class="mobile-action" type="button">EXIT</button>`;
+    <button id="mobile-reload" class="mobile-action" type="button">RLD</button>
+    <button id="mobile-exit" class="mobile-action" type="button">EXIT</button>
+  `;
   document.body.appendChild(controls);
 
-  const game = () => window.Engine3D;
-  const key = (name, value) => { if (game()?.keys) game().keys[name] = value; };
-  const bindStick = (el, fn) => {
-    let id = null;
-    const reset = () => { id = null; el.style.setProperty('--dx','0px'); el.style.setProperty('--dy','0px'); fn(0,0); };
-    const move = e => {
-      if (id !== e.pointerId) return;
-      const r = el.getBoundingClientRect(), max = r.width * .36;
-      let x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
-      const len = Math.hypot(x,y); if (len > max) { x *= max / len; y *= max / len; }
-      el.style.setProperty('--dx', `${x}px`); el.style.setProperty('--dy', `${y}px`); fn(x/max,y/max);
+  const bindStick = (element, callback) => {
+    let pointerId = null;
+    const reset = () => {
+      pointerId = null;
+      element.style.setProperty('--dx', '0px');
+      element.style.setProperty('--dy', '0px');
+      callback(0, 0);
     };
-    el.addEventListener('pointerdown', e => { id=e.pointerId; el.setPointerCapture(id); e.preventDefault(); move(e); });
-    el.addEventListener('pointermove', move); ['pointerup','pointercancel','lostpointercapture'].forEach(t => el.addEventListener(t, reset));
+    const move = e => {
+      if (pointerId !== e.pointerId) return;
+      const rect = element.getBoundingClientRect();
+      const max = rect.width * 0.36;
+      let x = e.clientX - rect.left - rect.width / 2;
+      let y = e.clientY - rect.top - rect.height / 2;
+      const len = Math.hypot(x, y);
+      if (len > max) {
+        x = (x / len) * max;
+        y = (y / len) * max;
+      }
+      element.style.setProperty('--dx', `${x}px`);
+      element.style.setProperty('--dy', `${y}px`);
+      callback(x / max, y / max);
+    };
+    element.addEventListener('pointerdown', e => {
+      pointerId = e.pointerId;
+      element.setPointerCapture(pointerId);
+      e.preventDefault();
+      move(e);
+    });
+    element.addEventListener('pointermove', move);
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(type => {
+      element.addEventListener(type, reset);
+    });
   };
-  bindStick(document.getElementById('mobile-move-stick'), (x,y) => { key('w',y<-.2); key('s',y>.2); key('a',x<-.2); key('d',x>.2); });
-  bindStick(document.getElementById('mobile-look-stick'), (x) => { key('left',x<-.18); key('right',x>.18); });
 
-  const button = (id, fn) => document.getElementById(id).addEventListener('pointerdown', e => { e.preventDefault(); fn(); });
-  button('mobile-fire', () => game()?.shoot());
-  button('mobile-reload', () => game()?.reload());
-  button('mobile-exit', () => game()?.leaveMatch());
+  const engine = () => window.Engine3D;
+  const setKey = (name, value) => {
+    if (engine() && engine().keys) engine().keys[name] = value;
+  };
 
-  const view = document.getElementById('game-view');
-  const update = () => controls.classList.toggle('active', !!view && getComputedStyle(view).display !== 'none');
-  new MutationObserver(update).observe(view, { attributes:true, attributeFilter:['style','class'] });
-  update();
+  bindStick(document.getElementById('mobile-move-stick'), (x, y) => {
+    setKey('w', y < -0.2);
+    setKey('s', y > 0.2);
+    setKey('a', x < -0.2);
+    setKey('d', x > 0.2);
+  });
 
-  // Draw lightweight, weapon-specific projectile trails over the FPS canvas.
-  const effects = document.createElement('canvas'); effects.id = 'projectile-effects';
-  view.appendChild(effects); const ctx = effects.getContext('2d'); const shots = [];
-  const resize = () => { effects.width=innerWidth; effects.height=innerHeight; }; addEventListener('resize',resize); resize();
-  window.weaponProjectile = (weapon, color) => { shots.push({ weapon, color, t:0 }); };
-  const draw = () => {
-    ctx.clearRect(0,0,effects.width,effects.height);
-    for (let i=shots.length-1;i>=0;i--) { const s=shots[i]; s.t+=.08; const x=innerWidth/2, y=innerHeight/2; const length=s.weapon==='SHOTGUN'?240:s.weapon==='RIFLE'?360:280; const spread=s.weapon==='SHOTGUN'?18:2; const endX=x+(Math.random()-.5)*spread, endY=y-(length*s.t);
-      ctx.save(); ctx.globalAlpha=Math.max(0,1-s.t); ctx.strokeStyle=s.color; ctx.shadowColor=s.color; ctx.shadowBlur=s.weapon==='SHOTGUN'?24:12; ctx.lineWidth=s.weapon==='SHOTGUN'?6:3; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(endX,endY); ctx.stroke();
-      if(s.weapon==='SHOTGUN') { for(let n=0;n<5;n++){ctx.beginPath();ctx.arc(endX+(Math.random()-.5)*45,endY+(Math.random()-.5)*45,3,0,Math.PI*2);ctx.fillStyle=s.color;ctx.fill();} } ctx.restore(); if(s.t>=1) shots.splice(i,1); }
+  bindStick(document.getElementById('mobile-look-stick'), (x) => {
+    setKey('left', x < -0.18);
+    setKey('right', x > 0.18);
+  });
+
+  document.getElementById('mobile-fire').addEventListener('pointerdown', e => {
+    e.preventDefault(); if (engine()) engine().shoot();
+  });
+  document.getElementById('mobile-reload').addEventListener('pointerdown', e => {
+    e.preventDefault(); if (engine()) engine().reload();
+  });
+  document.getElementById('mobile-exit').addEventListener('pointerdown', e => {
+    e.preventDefault(); if (engine()) engine().leaveMatch();
+  });
+
+  const gameView = document.getElementById('game-view');
+  const updateVisibility = () => {
+    if (gameView) {
+      controls.classList.toggle('active', getComputedStyle(gameView).display !== 'none');
+    }
+  };
+  if (gameView) {
+    new MutationObserver(updateVisibility).observe(gameView, { attributes: true, attributeFilter: ['style', 'class'] });
+    updateVisibility();
+  }
+
+  window.weaponProjectile = function (weapon, color) {
+    const layer = document.getElementById('projectile-layer') || (() => {
+      const n = document.createElement('canvas');
+      n.id = 'projectile-layer';
+      n.style.position = 'fixed';
+      n.style.inset = '0';
+      n.style.width = '100vw';
+      n.style.height = '100vh';
+      n.style.zIndex = '6000';
+      n.style.pointerEvents = 'none';
+      document.body.appendChild(n);
+      return n;
+    })();
+    const ctx = layer.getContext('2d');
+    const w = layer.width = window.innerWidth;
+    const h = layer.height = window.innerHeight;
+    const startX = w / 2;
+    const startY = h / 2;
+    const trail = {
+      x: startX,
+      y: startY,
+      vx: (Math.random() - 0.5) * 12,
+      vy: -3 - Math.random() * 8,
+      life: 1,
+      color,
+      kind: weapon || 'PISTOL'
+    };
+    const shots = (layer.__shots || []);
+    shots.push(trail);
+    layer.__shots = shots;
+
+    const draw = () => {
+      const c = layer.getContext('2d');
+      c.clearRect(0, 0, layer.width, layer.height);
+      for (let i = shots.length - 1; i >= 0; i--) {
+        const s = shots[i];
+        s.x += s.vx;
+        s.y += s.vy;
+        s.life -= 0.04;
+        c.beginPath();
+        c.strokeStyle = s.color;
+        c.lineWidth = s.kind === 'SHOTGUN' ? 5 : 3;
+        c.shadowBlur = 12;
+        c.shadowColor = s.color;
+        c.moveTo(s.x - s.vx * 3, s.y - s.vy * 3);
+        c.lineTo(s.x, s.y);
+        c.stroke();
+        if (s.life <= 0) shots.splice(i, 1);
+      }
+      if (shots.length) requestAnimationFrame(draw);
+      else c.clearRect(0, 0, layer.width, layer.height);
+    };
     requestAnimationFrame(draw);
-  }; draw();
+  };
 })();
