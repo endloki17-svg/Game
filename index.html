@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOOM GACHA : APOCALYPSE ENGINE</title>
+    <title>DOOM GACHA : APOCALYPSE PROTOCOL</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
     
     <!-- PeerJS & QRCode Library -->
@@ -11,663 +11,971 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
+        /* ==========================================================================
+           [0] GLOBAL VARIABLES & RESET
+           ========================================================================== */
         :root {
-            --neon-red: #ff003c; --neon-green: #33ff00; --neon-blue: #00aaff;
-            --neon-gold: #ffcc00; --neon-purple: #b300ff; --bg-dark: #030303;
+            --c-red: #ff003c; --c-red-dim: #550011;
+            --c-green: #33ff00; --c-green-dim: #004400;
+            --c-blue: #00aaff; --c-blue-dim: #002244;
+            --c-gold: #ffcc00; --c-purple: #b300ff;
+            --c-dark: #050505; --c-panel: rgba(10, 15, 20, 0.9);
+            --font-pixel: 'Press Start 2P', cursive;
+            --font-main: 'Noto Sans KR', sans-serif;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        body { background-color: var(--bg-dark); color: #fff; font-family: 'Noto Sans KR', sans-serif; overflow: hidden; transition: background-color 1s; }
-        .pixel-text { font-family: 'Press Start 2P', cursive; text-transform: uppercase; }
+        body { 
+            background-color: var(--c-dark); color: #fff; font-family: var(--font-main);
+            overflow: hidden; 
+            /* 동적 그리드 배경 */
+            background-image: linear-gradient(rgba(0, 255, 0, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 0, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px; background-position: center center;
+        }
 
-        /* CRT 및 글로벌 효과 */
-        .crt-overlay {
+        /* CRT 및 환경 이펙트 */
+        .crt-scanlines {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 9999;
-        }
-        #flash-bang {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #fff; opacity: 0; pointer-events: none; z-index: 9998;
-            transition: opacity 0.1s;
+            background-size: 100% 3px, 3px 100%; pointer-events: none; z-index: 9999;
         }
         .vignette {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle, transparent 40%, #000 120%);
-            pointer-events: none; z-index: 9997; transition: 1s; opacity: 0.5;
+            background: radial-gradient(circle at center, transparent 30%, #000 120%);
+            pointer-events: none; z-index: 9997;
         }
+        #flash-bang {
+            position: fixed; top:0; left:0; width:100vw; height:100vh; background:#fff;
+            opacity:0; pointer-events:none; z-index:9998; transition:opacity 0.1s;
+        }
+
+        /* 애니메이션 */
+        @keyframes glitch-anim {
+            0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 2px); }
+            20% { clip-path: inset(80% 0 10% 0); transform: translate(2px, -2px); }
+            40% { clip-path: inset(40% 0 50% 0); transform: translate(2px, 2px); }
+            60% { clip-path: inset(20% 0 60% 0); transform: translate(-2px, -2px); }
+            80% { clip-path: inset(60% 0 20% 0); transform: translate(2px, 2px); }
+            100% { clip-path: inset(30% 0 70% 0); transform: translate(-2px, -2px); }
+        }
+        .glitch-text { position: relative; display: inline-block; }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--c-dark);
+        }
+        .glitch-text::before { left: 2px; text-shadow: -1px 0 red; animation: glitch-anim 2s infinite linear alternate-reverse; }
+        .glitch-text::after { left: -2px; text-shadow: -1px 0 blue; animation: glitch-anim 3s infinite linear alternate-reverse; }
         
-        /* 화면 흔들림 애니메이션 */
         .shake-light { animation: shakeLight 0.1s infinite; }
         .shake-heavy { animation: shakeHeavy 0.05s infinite; filter: blur(1px) contrast(1.2); }
-        @keyframes shakeLight { 0% { transform: translate(1px, 1px) rotate(0deg); } 50% { transform: translate(-1px, -2px) rotate(-1deg); } 100% { transform: translate(-2px, 1px) rotate(1deg); } }
-        @keyframes shakeHeavy { 0% { transform: translate(5px, 5px) rotate(0deg); } 25% { transform: translate(-6px, -4px) rotate(-2deg); } 50% { transform: translate(4px, -7px) rotate(2deg); } 75% { transform: translate(-5px, 5px) rotate(-1deg); } 100% { transform: translate(6px, -3px) rotate(1deg); } }
+        @keyframes shakeLight { 0%,100%{transform:translate(0,0)} 25%{transform:translate(2px,2px)} 50%{transform:translate(-2px,-1px)} 75%{transform:translate(1px,-2px)} }
+        @keyframes shakeHeavy { 0%,100%{transform:translate(0,0)} 25%{transform:translate(6px,5px)} 50%{transform:translate(-8px,-4px)} 75%{transform:translate(5px,-9px)} }
 
-        /* ---------------- [VIEW 1] 랜딩 ---------------- */
+        /* ==========================================================================
+           [1] UI COMPONENTS & LAYOUTS
+           ========================================================================== */
+        .btn-cyber {
+            background: linear-gradient(45deg, transparent 5%, var(--c-red) 5%);
+            color: #fff; font-family: var(--font-pixel); border: none; cursor: pointer;
+            padding: 15px 30px; font-size: 1rem; font-weight: bold; text-transform: uppercase;
+            box-shadow: 6px 0px 0px #00e6f6; transition: all 0.2s; position: relative; outline: transparent;
+        }
+        .btn-cyber:hover { background: linear-gradient(45deg, transparent 5%, var(--c-blue) 5%); box-shadow: 6px 0px 0px var(--c-red); transform: scale(1.02); }
+        .btn-cyber:active { transform: scale(0.98); box-shadow: 2px 0px 0px var(--c-red); }
+        .btn-cyber.disabled { filter: grayscale(1); pointer-events: none; box-shadow: none; }
+
+        .panel {
+            background: var(--c-panel); border: 1px solid #333; position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 20px rgba(0,0,0,0.5);
+            padding: 30px; backdrop-filter: blur(10px);
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+        }
+        .panel::before { content:''; position:absolute; top:0; left:0; width:100%; height:2px; background: linear-gradient(90deg, transparent, var(--c-blue), transparent); }
+
+        /* 토스트 알림창 */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 10000; pointer-events: none; }
+        .toast { background: rgba(0,20,40,0.9); border-left: 4px solid var(--c-blue); color: #fff; padding: 15px 25px; font-family: var(--font-main); font-weight: bold; font-size: 0.9rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: slideIn 0.3s ease-out forwards; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
+
+        /* ==========================================================================
+           [2] VIEWS
+           ========================================================================== */
+        /* 로그인 랜딩 뷰 */
         #landing-view {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at center, #110000 0%, #000 100%);
-            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100;
+            background: radial-gradient(circle at center, #100 0%, #000 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; transition: opacity 0.5s;
         }
-        .intro-terminal { width: 800px; padding: 50px; background: rgba(10,0,0,0.8); border: 2px solid var(--neon-red); box-shadow: inset 0 0 50px rgba(255,0,60,0.2), 0 0 50px rgba(255,0,60,0.5); }
-        .glitch-title { font-size: 3.5rem; color: var(--neon-red); text-shadow: 5px 5px 0px #300, -2px -2px 0px #f0f; margin-bottom: 20px; text-align: center; animation: glitchText 3s infinite; }
-        .auth-box { margin-top: 40px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
-        .auth-box input { width: 400px; padding: 20px; background: #000; border: 1px solid var(--neon-red); color: var(--neon-red); font-family: 'Press Start 2P'; text-align: center; font-size: 1.2rem; outline: none; }
-        .btn-auth { width: 400px; padding: 20px; background: var(--neon-red); color: #000; font-weight: bold; font-size: 1.5rem; cursor: pointer; border: none; font-family: 'Press Start 2P'; transition: 0.2s; box-shadow: 0 0 15px var(--neon-red); }
-        .btn-auth:hover { background: #fff; box-shadow: 0 0 30px #fff; transform: scale(1.05); }
+        .auth-input { width: 400px; padding: 20px; background: rgba(0,0,0,0.5); border: 2px solid var(--c-red); color: var(--c-red); font-family: var(--font-pixel); text-align: center; font-size: 1.2rem; outline: none; margin: 30px 0; box-shadow: inset 0 0 10px var(--c-red-dim); }
+        .auth-input:focus { box-shadow: inset 0 0 20px var(--c-red); }
 
-        /* ---------------- [VIEW 2] 대시보드 ---------------- */
-        #dashboard-view { display: none; width: 100vw; height: 100vh; flex-direction: column; background: #000; }
-        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: #050505; border-bottom: 2px solid var(--neon-green); box-shadow: 0 0 30px rgba(51,255,0,0.2); z-index: 100; position:relative; }
-        .nav-tabs { display: flex; gap: 15px; }
-        .tab-btn { background: transparent; color: #666; border: 1px solid #444; padding: 12px 20px; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
-        .tab-btn.active { color: #000; background: var(--neon-green); border-color: var(--neon-green); box-shadow: 0 0 20px var(--neon-green); transform: translateY(-2px); }
-        .user-hud { display: flex; gap: 30px; align-items: center; font-size: 1.2rem; }
-        .coin-box { color: var(--neon-gold); border: 2px solid var(--neon-gold); padding: 10px 20px; font-weight: bold; background: rgba(255,204,0,0.1); text-shadow: 0 0 10px var(--neon-gold); box-shadow: inset 0 0 10px var(--neon-gold); }
-
-        .tab-content { display: none; flex: 1; position: relative; padding: 50px; overflow-y: auto; z-index: 10; }
-        .tab-content.active { display: flex; flex-direction: column; align-items: center; }
-        .section-title { font-size: 2.5rem; margin-bottom: 40px; text-align: center; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
-
-        /* [TAB 1/2: 로비/상점 간략화 CSS] */
-        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; width: 100%; max-width: 1200px; }
-        .card { background: rgba(10,10,10,0.9); border: 1px solid var(--neon-blue); padding: 40px; box-shadow: inset 0 0 30px rgba(0,170,255,0.1), 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(5px); }
-        .stat-bar-bg { width: 100%; background: #111; height: 25px; margin: 10px 0 20px 0; border: 1px solid #444; }
-        .stat-bar-fill { height: 100%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        .qr-box { background: #fff; padding: 15px; display: inline-block; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
-        .btn-buy { background: var(--neon-gold); color: #000; border: none; padding: 15px 30px; font-family: 'Press Start 2P'; cursor: pointer; font-weight: bold; margin-top:20px; transition: 0.2s; box-shadow: 0 5px 0 #997a00; }
-        .btn-buy:active { transform: translateY(5px); box-shadow: 0 0 0 #997a00; }
-
-        /* [TAB 3: 대망의 초고퀄리티 가챠 룸] */
-        #tab-gacha { justify-content: center; }
-        .gacha-stage {
-            position: relative; width: 100%; max-width: 800px; height: 600px;
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-            pointer-events: auto;
-        }
+        /* 대시보드 메인 뷰 */
+        #dashboard-view { display: none; width: 100vw; height: 100vh; flex-direction: column; position: relative; }
         
-        /* 차원 포털(블랙홀) 효과 */
+        /* 상단 네비게이션 헤더 */
+        header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 30px;
+            background: rgba(5,5,5,0.9); border-bottom: 2px solid var(--c-blue); z-index: 100;
+        }
+        .nav-tabs { display: flex; gap: 10px; }
+        .tab-btn {
+            background: transparent; color: #666; border: 1px solid #444; padding: 12px 20px;
+            cursor: pointer; transition: 0.2s; font-size: 0.8rem; font-family: var(--font-pixel);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .tab-btn:hover { background: #222; color: #fff; }
+        .tab-btn.active { background: var(--c-blue); color: #000; border-color: var(--c-blue); box-shadow: 0 0 15px var(--c-blue); }
+        
+        .hud-stats { display: flex; gap: 20px; font-family: var(--font-pixel); font-size: 0.9rem; align-items: center; }
+        .hud-coin { color: var(--c-gold); border: 1px solid var(--c-gold); padding: 10px 20px; background: rgba(255,204,0,0.1); box-shadow: 0 0 10px rgba(255,204,0,0.2); }
+
+        /* 탭 컨텐츠 래퍼 */
+        .tab-content { display: none; flex: 1; padding: 40px; overflow-y: auto; overflow-x: hidden; z-index: 10; }
+        .tab-content.active { display: block; animation: fadeInTab 0.3s ease-out; }
+        @keyframes fadeInTab { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .section-title { font-family: var(--font-pixel); font-size: 2rem; margin-bottom: 30px; color: #fff; text-shadow: 2px 2px 0 var(--c-blue); text-align: center; }
+
+        /* --------------------------------------------------------------------------
+           [TAB 1] MULTIPLAYER (COMM-LINK)
+           -------------------------------------------------------------------------- */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .code-display { font-size: 3.5rem; color: var(--c-gold); text-align: center; letter-spacing: 5px; margin: 20px 0; text-shadow: 0 0 20px var(--c-gold); font-family: var(--font-pixel); }
+        .input-row { display: flex; gap: 10px; margin-top: 20px; }
+        .input-row input { flex: 1; padding: 15px; background: #000; border: 1px solid #555; color: #fff; font-size: 1.2rem; text-align: center; font-family: var(--font-pixel); text-transform: uppercase; }
+        .chat-log { height: 200px; background: rgba(0,0,0,0.8); border: 1px solid #333; padding: 15px; overflow-y: auto; font-family: monospace; color: #0a0; font-size: 1rem; line-height: 1.5; margin-top: 20px; }
+
+        /* --------------------------------------------------------------------------
+           [TAB 2] ARMORY (INVENTORY & UPGRADES)
+           -------------------------------------------------------------------------- */
+        .inventory-layout { display: grid; grid-template-columns: 1fr 300px; gap: 30px; max-width: 1400px; margin: 0 auto; }
+        
+        /* 인벤토리 그리드 */
+        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; align-content: start; max-height: 600px; overflow-y: auto; padding-right: 10px; }
+        .inv-grid::-webkit-scrollbar { width: 8px; } .inv-grid::-webkit-scrollbar-thumb { background: var(--c-blue); }
+        
+        .inv-item {
+            background: #0a0a0a; border: 2px solid #333; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
+        }
+        .inv-item:hover { transform: scale(1.05); z-index: 5; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
+        .inv-item.equipped { border-color: var(--c-green); box-shadow: 0 0 15px var(--c-green) inset; }
+        .inv-item.equipped::after { content: 'EQUIPPED'; position: absolute; bottom: 5px; font-family: var(--font-pixel); font-size: 0.5rem; color: var(--c-green); background: #000; padding: 2px 5px; }
+        .inv-item svg { width: 80%; height: 80%; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        .item-qty { position: absolute; top: 5px; right: 5px; font-family: var(--font-pixel); font-size: 0.7rem; color: #aaa; }
+
+        /* 아이템 디테일 창 및 업그레이드 */
+        .detail-panel { display: flex; flex-direction: column; gap: 20px; }
+        #detail-view { text-align: center; min-height: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .detail-icon { width: 120px; height: 120px; margin-bottom: 20px; }
+        .detail-title { font-family: var(--font-main); font-weight: 900; font-size: 1.5rem; margin-bottom: 10px; }
+        .detail-stat { font-family: var(--font-pixel); color: var(--c-red); font-size: 0.9rem; margin-bottom: 20px; }
+
+        /* 플레이어 스탯 보드 */
+        .stat-board { font-family: var(--font-pixel); font-size: 0.8rem; line-height: 2; color: #ccc; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .stat-val { color: #fff; }
+
+        /* --------------------------------------------------------------------------
+           [TAB 3] BLACK MARKET (GACHA)
+           -------------------------------------------------------------------------- */
+        #tab-gacha { display: flex; justify-content: center; align-items: center; background: radial-gradient(circle at center, #0a0000 0%, transparent 70%); }
+        .gacha-stage { position: relative; width: 100%; max-width: 800px; height: 600px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+        
         .portal-core {
-            position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
-            width: 300px; height: 300px; border-radius: 50%;
-            background: conic-gradient(from 0deg, transparent 0%, rgba(0, 255, 255, 0.2) 20%, transparent 40%, rgba(255, 0, 255, 0.2) 60%, transparent 80%);
-            box-shadow: 0 0 50px rgba(0,0,0,0.9), inset 0 0 50px rgba(0,0,0,0.9);
-            opacity: 0; transition: opacity 1s, transform 3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; justify-content: center; align-items: center; z-index: 1; pointer-events: none;
+            position: absolute; top: 50px; left: 50%; transform: translateX(-50%); width: 350px; height: 350px; border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 0%, rgba(0,255,255,0.1) 20%, transparent 40%, rgba(255,0,255,0.1) 60%, transparent 80%);
+            box-shadow: 0 0 50px rgba(0,0,0,0.9), inset 0 0 50px rgba(0,0,0,0.9); opacity: 0; pointer-events: none; z-index: 1;
         }
         .portal-core.active { opacity: 1; animation: spinPortal 2s linear infinite; }
         .portal-core.furious { animation: spinPortal 0.2s linear infinite, portalPulse 0.1s infinite; filter: brightness(2) contrast(1.5); }
-        
         @keyframes spinPortal { 100% { transform: translateX(-50%) rotate(360deg); } }
-        @keyframes portalPulse { 0% { box-shadow: 0 0 50px rgba(255,0,0,0.5); } 50% { box-shadow: 0 0 100px rgba(255,255,255,1); } 100% { box-shadow: 0 0 50px rgba(0,0,255,0.5); } }
+        @keyframes portalPulse { 0% { box-shadow: 0 0 50px rgba(255,0,0,0.5); } 50% { box-shadow: 0 0 100px #fff; } 100% { box-shadow: 0 0 50px rgba(0,0,255,0.5); } }
 
-        /* 픽셀 무기 렌더러 */
         #roulette-item {
-            width: 200px; height: 200px; z-index: 5; position: absolute;
-            top: 150px; left: 50%; margin-left: -100px;
+            width: 200px; height: 200px; z-index: 5; position: absolute; top: 125px; left: 50%; margin-left: -100px;
             transition: transform 0.2s; opacity: 0; pointer-events: none;
         }
-        
         .silhouette-mode { filter: brightness(0) drop-shadow(0 0 10px rgba(255,0,0,0.8)); opacity: 1 !important; transform: scale(0.8); }
         .chaos-mode { filter: brightness(0) drop-shadow(0 0 30px #fff); opacity: 1 !important; transform: scale(1.1); animation: chaosJitter 0.05s infinite; }
         @keyframes chaosJitter { 0% { transform: scale(1.1) translate(3px, -3px); } 50% { transform: scale(1.2) translate(-3px, 3px); } 100% { transform: scale(1.1) translate(-2px, -2px); } }
 
-        .reveal-N { filter: drop-shadow(0 0 15px #aaa); opacity: 1 !important; transform: scale(1.2); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .reveal-R { filter: drop-shadow(0 0 30px var(--neon-blue)); opacity: 1 !important; transform: scale(1.4); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .reveal-SR { filter: drop-shadow(0 0 60px var(--neon-purple)) contrast(1.2); opacity: 1 !important; transform: scale(1.6); animation: floatItem 2s ease-in-out infinite; }
-        .reveal-SSR { filter: drop-shadow(0 0 100px var(--neon-gold)) drop-shadow(0 0 20px #fff) contrast(1.5) brightness(1.2); opacity: 1 !important; transform: scale(2.0); animation: floatItemSSR 0.5s infinite; }
+        .reveal-N { filter: drop-shadow(0 0 10px #aaa); opacity: 1 !important; transform: scale(1.2); transition: all 1s; }
+        .reveal-R { filter: drop-shadow(0 0 25px var(--c-blue)); opacity: 1 !important; transform: scale(1.4); transition: all 1s; }
+        .reveal-SR { filter: drop-shadow(0 0 50px var(--c-purple)) contrast(1.2); opacity: 1 !important; transform: scale(1.6); animation: floatItem 2s ease-in-out infinite; }
+        .reveal-SSR { filter: drop-shadow(0 0 80px var(--c-gold)) drop-shadow(0 0 20px #fff) contrast(1.5) brightness(1.2); opacity: 1 !important; transform: scale(2.0); animation: floatItemSSR 0.5s infinite; }
+        @keyframes floatItem { 0%, 100% { transform: scale(1.6) translateY(0); } 50% { transform: scale(1.6) translateY(-15px); } }
+        @keyframes floatItemSSR { 0% { transform: scale(2.0) translateY(0) rotate(0deg); } 25% { transform: scale(2.0) translateY(-5px) rotate(2deg); } 75% { transform: scale(2.0) translateY(5px) rotate(-2deg); } 100% { transform: scale(2.0) translateY(0) rotate(0deg); } }
 
-        @keyframes floatItem { 0%, 100% { transform: scale(1.6) translateY(0); } 50% { transform: scale(1.6) translateY(-20px); } }
-        @keyframes floatItemSSR { 0% { transform: scale(2.0) translateY(0) rotate(0deg); } 25% { transform: scale(2.0) translateY(-5px) rotate(1deg); } 75% { transform: scale(2.0) translateY(5px) rotate(-1deg); } 100% { transform: scale(2.0) translateY(0) rotate(0deg); } }
+        .glitch-item-name {
+            font-size: 2.5rem; margin-top: 40px; opacity: 0; font-family: var(--font-main); font-weight: 900; letter-spacing: 3px;
+            z-index: 10; position: absolute; bottom: 130px; text-align: center; width: 100%; text-shadow: 0 0 20px currentColor, 0 0 10px #000; pointer-events: none;
+        }
 
-        /* [핵심 수정: 버튼 최상단 배치 및 이펙트] */
         .btn-pull-epic {
             position: relative; z-index: 100;
             background: linear-gradient(180deg, #ff0055, #880022); border: 4px solid #fff;
-            padding: 25px 60px; font-size: 2.5rem; color: #fff; cursor: pointer; font-family: 'Press Start 2P';
-            box-shadow: 0 15px 0 #440011, 0 0 30px #ff0055; transition: all 0.1s; border-radius: 10px;
-            text-shadow: 2px 2px 0 #000; margin-bottom: 20px;
+            padding: 25px 60px; font-size: 2rem; color: #fff; cursor: pointer; font-family: var(--font-pixel);
+            box-shadow: 0 15px 0 #440011, 0 0 30px #ff0055; transition: all 0.1s; border-radius: 5px; text-shadow: 2px 2px 0 #000; margin-bottom: 20px;
         }
-        .btn-pull-epic:hover {
-            background: linear-gradient(180deg, #ff3377, #aa0033);
-            box-shadow: 0 15px 0 #440011, 0 0 50px #ff0055;
-            transform: scale(1.02);
-        }
+        .btn-pull-epic:hover { background: linear-gradient(180deg, #ff3377, #aa0033); transform: scale(1.02); box-shadow: 0 15px 0 #440011, 0 0 50px #ff0055; }
         .btn-pull-epic:active { transform: translateY(15px) scale(0.98); box-shadow: 0 0 0 #440011, 0 0 50px #ff0055; }
         .btn-pull-epic.disabled { filter: grayscale(1); pointer-events: none; transform: translateY(15px); box-shadow: 0 0 0 #222; }
 
-        .glitch-item-name {
-            font-size: 3rem; margin-top: 40px; opacity: 0; font-family: 'Noto Sans KR', sans-serif; font-weight: 900;
-            text-transform: uppercase; letter-spacing: 5px; z-index: 10; position: absolute; bottom: 150px;
-            text-align: center; width: 100%; text-shadow: 0 0 20px currentColor, 0 0 10px #000; pointer-events: none;
-        }
-
-        /* ---------------- [TAB 4: PLAY 미니게임] ---------------- */
-        #play-canvas { background: #050505; border: 4px solid var(--neon-red); cursor: crosshair; box-shadow: inset 0 0 50px rgba(255,0,0,0.1); }
+        /* --------------------------------------------------------------------------
+           [TAB 4] COMBAT ZONE (PLAY)
+           -------------------------------------------------------------------------- */
+        .combat-ui { width: 100%; max-width: 1000px; display: flex; justify-content: space-between; align-items: center; margin: 0 auto 20px auto; }
+        #play-canvas { display: block; margin: 0 auto; background: #020202; border: 4px solid var(--c-red); cursor: crosshair; box-shadow: inset 0 0 50px rgba(255,0,0,0.1), 0 0 30px rgba(255,0,0,0.2); }
         
-        /* 물리 엔진용 파티클 캔버스 (전체 덮기) */
+        /* 파티클 캔버스 (글로벌 오버레이) */
         #vfx-canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9000; mix-blend-mode: screen; }
 
     </style>
 </head>
 <body>
-    <div class="crt-overlay"></div>
-    <div class="vignette" id="vignette"></div>
+    <div class="crt-scanlines"></div>
+    <div class="vignette"></div>
     <div id="flash-bang"></div>
-    
     <canvas id="vfx-canvas"></canvas>
+    <div id="toast-container"></div>
 
-    <!-- [VIEW 1] 랜딩 인트로 화면 -->
+    <!-- [VIEW 1] 랜딩 / 인트로 -->
     <div id="landing-view">
-        <div class="intro-terminal">
-            <h1 class="glitch-title pixel-text">APOCALYPSE<br>ENGINE</h1>
-            <p style="color:var(--neon-green); font-size:1.2rem; line-height:2; text-align:center;" class="pixel-text">
-                > SYSTEM BOOT SEQUENCE INITIATED.<br>
-                > AUTHORIZATION REQUIRED.<br>
+        <div class="panel" style="text-align: center; width: 700px;">
+            <h1 class="glitch-text" data-text="APOCALYPSE" style="font-family: var(--font-pixel); font-size: 3.5rem; color: var(--c-red); margin-bottom: 10px;">APOCALYPSE</h1>
+            <h2 style="font-family: var(--font-pixel); font-size: 2rem; color: #fff; margin-bottom: 30px; letter-spacing: 5px;">PROTOCOL</h2>
+            
+            <p style="color:var(--c-green); font-family:monospace; font-size:1.1rem; line-height:1.8; margin-bottom: 20px;">
+                > ESTABLISHING SECURE CONNECTION...<br>
+                > BLACK MARKET GACHA SYSTEM : ONLINE.<br>
+                > COMBAT SIMULATOR : ONLINE.<br>
+                > IDENTIFY YOURSELF, AGENT.
             </p>
-            <div class="auth-box">
-                <input type="text" id="login-id" placeholder="ENTER AGENT ID" maxlength="10">
-                <button class="btn-auth pixel-text" onclick="processLogin()">INITIALIZE</button>
-            </div>
+            <input type="text" id="login-id" class="auth-input" placeholder="AGENT ID" maxlength="10">
+            <br>
+            <button class="btn-cyber" onclick="App.login()" style="width: 400px; padding: 25px; font-size: 1.5rem;">SYSTEM OVERRIDE</button>
         </div>
     </div>
 
     <!-- [VIEW 2] 메인 대시보드 -->
     <div id="dashboard-view">
         <header>
-            <div class="nav-tabs pixel-text">
-                <button class="tab-btn active" onclick="switchTab('lobby')">COMMAND</button>
-                <button class="tab-btn" onclick="switchTab('shop')">ARMORY</button>
-                <button class="tab-btn" onclick="switchTab('gacha')" style="color:var(--neon-red); border-color:var(--neon-red);">BLACK MARKET</button>
-                <button class="tab-btn" onclick="switchTab('play')">COMBAT</button>
+            <div class="nav-tabs">
+                <button class="tab-btn" onclick="App.switchTab('multiplayer')">COMM-LINK (멀티)</button>
+                <button class="tab-btn active" onclick="App.switchTab('armory')">ARMORY (인벤토리)</button>
+                <button class="tab-btn" onclick="App.switchTab('gacha')" style="color:var(--c-red); border-color:var(--c-red);">BLACK MARKET (뽑기)</button>
+                <button class="tab-btn" onclick="App.switchTab('combat')">WARZONE (전투)</button>
             </div>
-            <div class="user-hud pixel-text">
+            <div class="hud-stats">
                 <div style="color:#aaa;">AGENT <span id="hud-name" style="color:#fff;"></span></div>
-                <div class="coin-box">COIN: <span id="hud-coin">10000</span></div>
+                <div class="hud-coin">COIN: <span id="hud-coin">10000</span></div>
             </div>
         </header>
 
-        <!-- 탭 1 -->
-        <div id="tab-lobby" class="tab-content active">
-            <h2 class="section-title pixel-text" style="color:var(--neon-blue);">COMMAND CENTER</h2>
-            <div class="card-grid">
-                <div class="card">
-                    <h3 class="pixel-text" style="color:var(--neon-green);">STATUS</h3>
-                    <div style="margin-top:30px; font-family:'Press Start 2P'; font-size:0.8rem; line-height:2; color:#ccc;">
-                        <div>LEVEL: <span id="stat-level" style="color:#fff;">1</span></div>
-                        <div style="margin-top:10px; color:var(--neon-red);">ATK POWER: <span id="stat-atk-val">10</span></div>
-                        <div class="stat-bar-bg"><div class="stat-bar-fill" id="bar-atk" style="background:var(--neon-red); width:10%;"></div></div>
-                        <div style="color:var(--neon-purple);">LUCK CHANCE: +<span id="stat-luck-val">0</span>%</div>
-                        <div class="stat-bar-bg"><div class="stat-bar-fill" id="bar-luck" style="background:var(--neon-purple); width:0%;"></div></div>
+        <!-- [TAB 1: 멀티플레이] -->
+        <div id="tab-multiplayer" class="tab-content">
+            <h2 class="section-title">COMMUNICATION UPLINK</h2>
+            <div class="grid-2">
+                <!-- 방 생성 (HOST) -->
+                <div class="panel" style="text-align: center;">
+                    <h3 style="font-family:var(--font-pixel); color:var(--c-green); margin-bottom: 15px;">HOST SERVER</h3>
+                    <p style="color:#888; font-size:0.9rem; margin-bottom:20px;">새로운 보안 세션을 생성하고 다른 요원을 초대합니다.</p>
+                    <button class="btn-cyber" id="btn-host" onclick="App.Network.hostRoom()" style="width:100%; margin-bottom: 20px;">CREATE SECURE ROOM</button>
+                    
+                    <div id="host-info" style="display:none;">
+                        <p style="color:#fff;">YOUR ROOM CODE:</p>
+                        <div class="code-display" id="my-code">---</div>
+                        <div id="qrcode" style="background:#fff; padding:15px; display:inline-block;"></div>
                     </div>
                 </div>
-                <div class="card" style="text-align: center;">
-                    <h3 class="pixel-text" style="color:#888;">NETWORK LINK</h3>
-                    <div class="pixel-text" id="my-code" style="font-size:3rem; color:var(--neon-gold); margin:20px 0; text-shadow:0 0 20px var(--neon-gold);">...</div>
-                    <div class="qr-box" id="qrcode"></div>
+
+                <!-- 방 참가 (JOIN) & 채팅 -->
+                <div class="panel">
+                    <h3 style="font-family:var(--font-pixel); color:var(--c-blue); margin-bottom: 15px;">JOIN SERVER</h3>
+                    <div class="input-row">
+                        <input type="text" id="target-code" placeholder="ENTER 3-DIGIT CODE" maxlength="3">
+                        <button class="btn-cyber" onclick="App.Network.joinRoom()">CONNECT</button>
+                    </div>
+                    
+                    <div class="chat-log" id="chat-log">
+                        <div>> 시스템 온라인. 통신 대기 중...</div>
+                    </div>
+                    <div class="input-row">
+                        <input type="text" id="chat-input" placeholder="MESSAGE..." disabled>
+                        <button class="btn-cyber" id="chat-btn" onclick="App.Network.sendChat()" disabled>SEND</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 탭 2 -->
-        <div id="tab-shop" class="tab-content">
-            <h2 class="section-title pixel-text" style="color:var(--neon-green);">ARMORY UPGRADES</h2>
-            <div class="card-grid">
-                <div class="card" style="text-align:center;">
-                    <div style="font-size:4rem; margin-bottom:20px;">⚔️</div>
-                    <h3 class="pixel-text" style="color:var(--neon-red);">DAMAGE CORE</h3>
-                    <p style="color:#aaa; margin-top:20px;">전투 데미지 증가 (현재: <span id="shop-atk-current">10</span>)</p>
-                    <button class="btn-buy" onclick="buyUpgrade('atk')">UPGRADE (<span id="cost-atk">1500</span>)</button>
+        <!-- [TAB 2: 인벤토리 & 업그레이드] -->
+        <div id="tab-armory" class="tab-content active">
+            <h2 class="section-title">ARMORY & LOADOUT</h2>
+            <div class="inventory-layout">
+                <!-- 좌측: 획득 아이템 목록 -->
+                <div class="panel">
+                    <h3 style="font-family:var(--font-pixel); color:var(--c-gold); margin-bottom: 15px; font-size:1rem;">ACQUIRED WEAPONS</h3>
+                    <div class="inv-grid" id="inventory-grid">
+                        <!-- 아이템 동적 생성 됨 -->
+                    </div>
+                    <div id="empty-inv-msg" style="text-align:center; color:#555; margin-top:50px; font-family:var(--font-pixel);">NO ITEMS IN INVENTORY</div>
                 </div>
-                <div class="card" style="text-align:center;">
-                    <div style="font-size:4rem; margin-bottom:20px;">🍀</div>
-                    <h3 class="pixel-text" style="color:var(--neon-purple);">LUCK MATRIX</h3>
-                    <p style="color:#aaa; margin-top:20px;">고등급 뽑기 확률 극대화 (현재: +<span id="shop-luck-current">0</span>%)</p>
-                    <button class="btn-buy" onclick="buyUpgrade('luck')">UPGRADE (<span id="cost-luck">3000</span>)</button>
+
+                <!-- 우측: 장비 디테일 & 플레이어 스탯 -->
+                <div class="detail-panel">
+                    <!-- 선택된 아이템 정보창 -->
+                    <div class="panel" id="detail-view">
+                        <div style="color:#555; font-family:var(--font-pixel); font-size:0.8rem;">SELECT AN ITEM</div>
+                    </div>
+
+                    <!-- 플레이어 종합 스탯 -->
+                    <div class="panel">
+                        <h3 style="font-family:var(--font-pixel); color:var(--c-blue); margin-bottom: 15px; font-size:1rem;">AGENT STATUS</h3>
+                        <div class="stat-board">
+                            <div class="stat-row"><span>BASE ATK:</span> <span class="stat-val" id="stat-base-atk">10</span></div>
+                            <div class="stat-row" style="color:var(--c-green);"><span>WEAPON ATK:</span> <span class="stat-val" id="stat-wep-atk" style="color:var(--c-green);">+0</span></div>
+                            <div class="stat-row" style="border-top:1px solid #333; padding-top:5px; margin-top:5px; font-weight:bold; color:var(--c-red);"><span>TOTAL DMG:</span> <span class="stat-val" id="stat-total-atk" style="color:var(--c-red);">10</span></div>
+                        </div>
+                        
+                        <h3 style="font-family:var(--font-pixel); color:var(--c-purple); margin-top: 20px; margin-bottom: 15px; font-size:1rem;">UPGRADES</h3>
+                        <button class="btn-cyber" onclick="App.buyBaseAttack()" style="width:100%; font-size:0.7rem; padding:10px;">UPGRADE BASE ATK (<span id="cost-atk">1500</span>C)</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 탭 3: 극한의 연출 가챠 -->
-        <div id="tab-gacha" class="tab-content" style="background: radial-gradient(circle at center, #0a0000 0%, #000 100%);">
-            <h2 class="section-title pixel-text" style="color:var(--neon-red); letter-spacing:5px;">VOID ROULETTE</h2>
+        <!-- [TAB 3: 블랙마켓 가챠] -->
+        <div id="tab-gacha" class="tab-content">
+            <h2 class="section-title" style="color:var(--c-red); letter-spacing:5px;">VOID ROULETTE</h2>
             <div class="gacha-stage">
-                <!-- 차원 포털 이펙트 -->
                 <div class="portal-core" id="portal"></div>
-                
-                <!-- 무기 실루엣 / 결과 -->
                 <div id="roulette-item"></div>
                 <div id="item-name" class="glitch-item-name"></div>
                 
-                <!-- 수정됨: 버튼 최상단 배치 및 onclick 정상 작동 -->
-                <button class="btn-pull-epic" id="btn-pull" onclick="executeEpicGacha()">EXTRACT WEAPON</button>
-                <p style="margin-top:10px; font-family:'Press Start 2P'; color:var(--neon-gold); text-shadow:0 0 10px #000; z-index:100;">COST: 1000 COINS</p>
+                <button class="btn-pull-epic" id="btn-pull" onclick="App.Gacha.execute()">EXTRACT WEAPON</button>
+                <p style="margin-top:15px; font-family:var(--font-pixel); color:var(--c-gold); text-shadow:0 0 10px #000; z-index:100;">COST: 1000 COINS</p>
             </div>
         </div>
 
-        <!-- 탭 4: 미니게임 -->
-        <div id="tab-play" class="tab-content">
-            <div style="width:100%; max-width:1000px; display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 class="pixel-text" style="color:var(--neon-blue); margin:0;">COMBAT ZONE</h2>
-                <div class="pixel-text" style="font-size:1.5rem; color:var(--neon-gold);">SCORE: <span id="score-display">0</span></div>
-                <button class="btn-buy" style="margin:0; background:var(--neon-red);" onclick="startGame()">START MISSION</button>
+        <!-- [TAB 4: 미니게임 전투] -->
+        <div id="tab-combat" class="tab-content">
+            <div class="combat-ui">
+                <h2 class="section-title" style="margin:0; text-align:left;">WARZONE</h2>
+                <div style="font-family:var(--font-pixel); font-size:1.5rem; color:var(--c-gold);">SCORE: <span id="score-display">0</span></div>
+                <button class="btn-cyber" style="background:var(--c-red-dim); box-shadow: 6px 0px 0px var(--c-red);" onclick="App.Combat.start()">START MISSION</button>
             </div>
-            <canvas id="play-canvas" width="1000" height="500"></canvas>
+            <canvas id="play-canvas" width="1000" height="550"></canvas>
+            <p style="text-align:center; color:#888; margin-top:15px;">마우스로 몬스터를 조준하고 사격하십시오. 장착한 무기의 공격력이 적용됩니다.</p>
         </div>
     </div>
 
     <script>
-        /* =========================================================
-           [코어 데이터: 대규모 픽셀 아트 무기고]
-        ========================================================= */
-        const PIXEL_MAP = {
-            'N1': { name: '녹슨 전투 단검', rank: 'N', color: '#888888', data: `0000000000002222\n0000000000223322\n0000000002233200\n0000000022332000\n0000002223320000\n0000022233200000\n0002222332000000\n0222223320000000\n0122222211000000\n0111111111000000\n0000144100000000\n0000144100000000\n0000011000000000` },
-            'N2': { name: '구형 권총', rank: 'N', color: '#aaaaaa', data: `0000000000000000\n0011111111111000\n0122222222222100\n0122222222222100\n0011111112222100\n0000000012222100\n0000000012222100\n0000000011111100` },
-            'R1': { name: '전술형 샷건', rank: 'R', color: '#00aaff', data: `0000000000000000\n1111111111111110\n1222222222222221\n1222222222222221\n1111111111111110\n0013333331000000\n0011111111000000\n0013310000000000\n0013310000000000\n0113311000000000\n0111111000000000` },
-            'R2': { name: '체인 쏘우', rank: 'R', color: '#00aaff', data: `0000000000000000\n0000111111111110\n0011222222222221\n0155222222222210\n0155111111111110\n0011100000000000\n0000110000000000\n0000011000000000` },
-            'SR1': { name: '플라즈마 라이플', rank: 'SR', color: '#b300ff', data: `0000000000011111\n0000000000155551\n1111111111155551\n1222222222255551\n1266622666211111\n1266622666222221\n1111111111111111\n0001222210000000\n0001111110000000\n0001221000000000\n0011221100000000` },
-            'SR2': { name: '가우스 캐논', rank: 'SR', color: '#b300ff', data: `0000000111110000\n0000011666661100\n1111112666662111\n1222222222222221\n1111112666662111\n0000011666661100\n0000000111110000\n0000000122210000\n0000001122211000\n0000001111111000` },
-            'SSR1': { name: 'BFG-9000 (절대무기)', rank: 'SSR', color: '#ffcc00', data: `0000111111111100\n0001222222222210\n0012555555555521\n0125444444444452\n1254444444444442\n1254444444444442\n0125444444444452\n0012555555555521\n0001222222222210\n0000111111111100\n0000012222100000\n0000112222110000\n0001122222211000` },
-            'SSR2': { name: '크루시블 (악마학살검)', rank: 'SSR', color: '#ff003c', data: `0000000000000001\n0000000000000116\n0000000000011666\n0000000001166661\n0000000116666110\n0000011666611000\n0001166661100000\n0016666110000000\n0166611000000000\n1661111000000000\n1111551100000000\n0015555100000000\n0001551000000000\n0000110000000000` }
+        /* ==========================================================================
+           [CORE DATA] PIXEL ART WEAPONS & PALETTE (HIGH QUALITY 20x20 OR 16x16)
+           Palette: 0(Trans) 1(BlackLine) 2(DarkGrey) 3(MidGrey) 4(LightGrey/Silver)
+                    5(NeonGreen) 6(NeonPurple) 7(NeonCyan) 8(Gold) 9(NeonRed) A(WhiteGlare) B(Brown)
+           ========================================================================== */
+        const P = {
+            '0':'transparent', '1':'#000', '2':'#2a2a2a', '3':'#555', '4':'#aaa', 
+            '5':'#33ff00', '6':'#b300ff', '7':'#00ffff', '8':'#ffcc00', '9':'#ff003c', 'A':'#ffffff', 'B':'#5c3a21'
         };
-        const COLOR_PALETTE = { '0':'transparent', '1':'#000', '2':'#666', '3':'#8b4513', '4':'#0f0', '5':'#fc0', '6':'#f0f' };
 
-        function renderPixelSVG(dataKey) {
-            const data = PIXEL_MAP[dataKey].data.trim().split('\n');
-            let svg = `<svg viewBox="0 0 16 16" width="100%" height="100%" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">`;
-            for(let y=0; y<data.length; y++) {
-                for(let x=0; x<data[y].length; x++) {
-                    if(data[y][x] !== '0') svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="${COLOR_PALETTE[data[y][x]]}"/>`;
+        const DB = {
+            'N1': { id: 'N1', name: '녹슨 서바이벌 나이프', rank: 'N', color: '#aaaaaa', atk: 5, weight: 35, data: `
+                000000000000004A
+                00000000000004A4
+                0000000000004A40
+                000000000004A400
+                00000000004A4000
+                0000000114A40000
+                0000001B1A400000
+                000001BB14000000
+                00001BB100000000
+                0001BB1000000000
+                001BB10000000000
+                01BB100000000000
+                0111000000000000
+                0000000000000000
+            `},
+            'N2': { id: 'N2', name: '구식 리볼버', rank: 'N', color: '#aaaaaa', atk: 12, weight: 35, data: `
+                0000000000000000
+                0000000000000000
+                0011111111111000
+                0144444444444100
+                0143333333334100
+                0011111114444100
+                000000001BBBB100
+                000000001BBBB100
+                0000000011111100
+                0000000000000000
+            `},
+            'R1': { id: 'R1', name: '택티컬 샷건', rank: 'R', color: '#00aaff', atk: 35, weight: 15, data: `
+                0000000000000000
+                1111111111111110
+                1444444444444441
+                1333333333333331
+                1111111111111110
+                0012222221000000
+                0011111111000000
+                001BB10000000000
+                001BB10000000000
+                011BB11000000000
+                0111111000000000
+            `},
+            'R2': { id: 'R2', name: '헤비 체인건', rank: 'R', color: '#00aaff', atk: 50, weight: 10, data: `
+                0000000000000000
+                0000111111111110
+                0011444444444441
+                0188434343434341
+                0188111111111110
+                0011100000000000
+                0000110000000000
+                0000011000000000
+            `},
+            'SR1': { id: 'SR1', name: '아르곤 플라즈마 소총', rank: 'SR', color: '#b300ff', atk: 120, weight: 3.5, data: `
+                0000000000011111
+                0000000000166661
+                111111111116A661
+                1444444444466661
+                1422244222411111
+                1422244222444441
+                1111111111111111
+                0001333310000000
+                0001111110000000
+                0001331000000000
+                0011331100000000
+            `},
+            'SR2': { id: 'SR2', name: '이온 스나이퍼 캐논', rank: 'SR', color: '#b300ff', atk: 180, weight: 1.5, data: `
+                0000000111110000
+                0000011777771100
+                11111147A7774111
+                1444444444444441
+                1111114777774111
+                0000011777771100
+                0000000111110000
+                0000000122210000
+                0000001122211000
+                0000001111111000
+            `},
+            'SSR1': { id: 'SSR1', name: 'BFG-9000 (행성파괴자)', rank: 'SSR', color: '#ffcc00', atk: 500, weight: 0.8, data: `
+                0000111111111100
+                0001444444444410
+                0014555555555541
+                01455A5A5A5A5552
+                1455AAAAAAAAAA54
+                1455A5A5A5A5A554
+                0145555555555552
+                0014555555555541
+                0001444444444410
+                0000111111111100
+                0000013333100000
+                0000113333110000
+                0001133333311000
+            `},
+            'SSR2': { id: 'SSR2', name: '크루시블 (악마학살검)', rank: 'SSR', color: '#ff003c', atk: 999, weight: 0.2, data: `
+                0000000000000001
+                0000000000000119
+                0000000000011999
+                000000000119A991
+                0000000119A99110
+                00000119A9911000
+                000119A991100000
+                0019A99110000000
+                0199911000000000
+                1991111000000000
+                1111881100000000
+                0018888100000000
+                0001881000000000
+                0000110000000000
+            `}
+        };
+
+        // 데이터를 SVG로 변환하는 유틸
+        function renderPixelSVG(itemObj) {
+            const lines = itemObj.data.trim().split('\n').map(l => l.trim());
+            const w = lines[0].length; const h = lines.length;
+            let svg = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">`;
+            for(let y=0; y<h; y++) {
+                for(let x=0; x<w; x++) {
+                    const c = lines[y][x];
+                    if(c !== '0' && P[c]) svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="${P[c]}"/>`;
                 }
             }
             return svg + `</svg>`;
         }
 
-        const GACHA_POOL = [
-            { id: 'N1', weight: 30 }, { id: 'N2', weight: 30 },
-            { id: 'R1', weight: 15 }, { id: 'R2', weight: 15 },
-            { id: 'SR1', weight: 4 }, { id: 'SR2', weight: 4 },
-            { id: 'SSR1', weight: 1 }, { id: 'SSR2', weight: 1 }
-        ];
-
-        /* =========================================================
-           [절차적 오디오 엔진 (Procedural Audio Engine)]
-        ========================================================= */
+        /* ==========================================================================
+           [SYSTEM MODULES] PROCEDURAL AUDIO & VFX ENGINE
+           ========================================================================== */
         const AC = new (window.AudioContext || window.webkitAudioContext)();
         
-        const SoundEngine = {
-            playHeartbeat: () => {
+        const AudioSys = {
+            play: (type, duration = 0.1, freq = 400, vol = 0.2) => {
                 if(AC.state === 'suspended') AC.resume();
-                const now = AC.currentTime;
-                const osc = AC.createOscillator();
-                const gain = AC.createGain();
-                osc.connect(gain); gain.connect(AC.destination);
-                osc.type = 'sine'; osc.frequency.setValueAtTime(50, now);
-                
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.8, now + 0.1);
-                gain.gain.exponentialRampToValueAtTime(0.1, now + 0.3);
-                gain.gain.linearRampToValueAtTime(0.6, now + 0.4);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
-                
-                osc.start(now); osc.stop(now + 1);
-            },
-            playRiser: (durationSec) => {
-                if(AC.state === 'suspended') AC.resume();
-                const now = AC.currentTime;
-                const osc = AC.createOscillator();
-                const gain = AC.createGain();
-                osc.connect(gain); gain.connect(AC.destination);
-                
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(50, now);
-                osc.frequency.exponentialRampToValueAtTime(2000, now + durationSec);
-                
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.3, now + durationSec - 0.2);
-                gain.gain.linearRampToValueAtTime(0, now + durationSec);
-                
-                osc.start(now); osc.stop(now + durationSec);
-            },
-            playExplosion: () => {
-                if(AC.state === 'suspended') AC.resume();
-                const now = AC.currentTime;
-                const bufferSize = AC.sampleRate * 2;
-                const buffer = AC.createBuffer(1, bufferSize, AC.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-                
-                const noise = AC.createBufferSource(); noise.buffer = buffer;
-                const filter = AC.createBiquadFilter(); filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(1000, now); filter.frequency.exponentialRampToValueAtTime(50, now + 1.5);
-                
-                const gain = AC.createGain(); gain.gain.setValueAtTime(1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
-                noise.connect(filter); filter.connect(gain); gain.connect(AC.destination); noise.start(now);
-            },
-            playEpicSSRChord: () => {
-                if(AC.state === 'suspended') AC.resume();
-                const now = AC.currentTime;
-                [261.63, 329.63, 392.00, 523.25].forEach(freq => {
-                    const osc = AC.createOscillator(); const gain = AC.createGain();
-                    osc.connect(gain); gain.connect(AC.destination);
-                    osc.type = 'square'; osc.frequency.setValueAtTime(freq, now);
-                    gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.2, now + 0.1);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 3);
-                    osc.start(now); osc.stop(now + 3);
-                });
-            },
-            playGunshot: () => {
-                if(AC.state === 'suspended') AC.resume();
-                const now = AC.currentTime;
                 const osc = AC.createOscillator(); const gain = AC.createGain();
                 osc.connect(gain); gain.connect(AC.destination);
-                osc.type = 'square'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(10, now + 0.1);
-                gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0, now + 0.1);
-                osc.start(now); osc.stop(now + 0.1);
+                osc.type = type; osc.frequency.setValueAtTime(freq, AC.currentTime);
+                gain.gain.setValueAtTime(vol, AC.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, AC.currentTime + duration);
+                osc.start(); osc.stop(AC.currentTime + duration);
+            },
+            hover: () => AudioSys.play('sine', 0.1, 800, 0.05),
+            click: () => AudioSys.play('square', 0.1, 300, 0.1),
+            equip: () => {
+                AudioSys.play('sawtooth', 0.2, 500, 0.1);
+                setTimeout(() => AudioSys.play('sawtooth', 0.4, 800, 0.1), 100);
+            },
+            heartbeat: () => {
+                if(AC.state==='suspended') AC.resume();
+                const o = AC.createOscillator(); const g = AC.createGain();
+                o.connect(g); g.connect(AC.destination); o.type='sine'; o.frequency.value=50;
+                const n = AC.currentTime;
+                g.gain.setValueAtTime(0,n); g.gain.linearRampToValueAtTime(0.8,n+0.1); g.gain.exponentialRampToValueAtTime(0.1,n+0.3);
+                g.gain.linearRampToValueAtTime(0.6,n+0.4); g.gain.exponentialRampToValueAtTime(0.01,n+0.8);
+                o.start(n); o.stop(n+1);
+            },
+            riser: (dur) => {
+                const o = AC.createOscillator(); const g = AC.createGain();
+                o.connect(g); g.connect(AC.destination); o.type='sawtooth';
+                const n = AC.currentTime;
+                o.frequency.setValueAtTime(50,n); o.frequency.exponentialRampToValueAtTime(2000,n+dur);
+                g.gain.setValueAtTime(0,n); g.gain.linearRampToValueAtTime(0.2,n+dur-0.2); g.gain.linearRampToValueAtTime(0,n+dur);
+                o.start(n); o.stop(n+dur);
+            },
+            explosion: () => {
+                const b = AC.createBuffer(1, AC.sampleRate*2, AC.sampleRate);
+                const d = b.getChannelData(0); for(let i=0; i<d.length; i++) d[i] = Math.random()*2-1;
+                const n = AC.createBufferSource(); n.buffer = b;
+                const f = AC.createBiquadFilter(); f.type = 'lowpass';
+                const now = AC.currentTime;
+                f.frequency.setValueAtTime(1000, now); f.frequency.exponentialRampToValueAtTime(50, now+1.5);
+                const g = AC.createGain(); g.gain.setValueAtTime(0.8, now); g.gain.exponentialRampToValueAtTime(0.01, now+1.5);
+                n.connect(f); f.connect(g); g.connect(AC.destination); n.start(now);
+            },
+            shoot: (rank) => {
+                const freq = rank==='SSR'?100 : rank==='SR'?200 : 300;
+                const vol = rank==='SSR'?0.4 : 0.2;
+                AudioSys.play('square', 0.15, freq, vol);
             }
         };
 
-        /* =========================================================
-           [VFX 입자 물리 엔진 (OOP)]
-        ========================================================= */
-        const vfxCanvas = document.getElementById('vfx-canvas');
-        const vfxCtx = vfxCanvas.getContext('2d');
-        let vfxParticles = [];
+        // 모든 버튼에 호버음, 클릭음 바인딩
+        document.addEventListener('mouseover', e => { if(e.target.tagName==='BUTTON' || e.target.classList.contains('inv-item')) AudioSys.hover(); });
+        document.addEventListener('mousedown', e => { if(e.target.tagName==='BUTTON') AudioSys.click(); });
 
-        function resizeVfx() { vfxCanvas.width = window.innerWidth; vfxCanvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeVfx); resizeVfx();
+        /* VFX Engine */
+        const vfx = document.getElementById('vfx-canvas'); const vCtx = vfx.getContext('2d');
+        let particles = [];
+        window.addEventListener('resize', () => { vfx.width = window.innerWidth; vfx.height = window.innerHeight; });
+        vfx.width = window.innerWidth; vfx.height = window.innerHeight;
 
         class Particle {
-            constructor(x, y, color, type, speed) {
-                this.x = x; this.y = y; this.color = color; this.type = type;
-                this.life = 1.0; this.decay = Math.random() * 0.01 + 0.005;
-                const angle = Math.random() * Math.PI * 2;
-                const v = Math.random() * speed + speed/2;
-                this.vx = Math.cos(angle) * v; this.vy = Math.sin(angle) * v;
-                this.size = Math.random() * 5 + 3;
+            constructor(x,y,c,type,spd) {
+                this.x=x; this.y=y; this.c=c; this.type=type; this.life=1; this.decay=Math.random()*0.01+0.005;
+                const a = Math.random()*Math.PI*2; const v = Math.random()*spd + spd/2;
+                this.vx=Math.cos(a)*v; this.vy=Math.sin(a)*v; this.sz=Math.random()*5+3;
             }
             update() {
-                this.x += this.vx; this.y += this.vy; this.life -= this.decay;
-                if (this.type === 'spark') { this.vy += 0.5; }
-                if (this.y > vfxCanvas.height - 10) { this.y = vfxCanvas.height - 10; this.vy *= -0.6; }
+                this.x+=this.vx; this.y+=this.vy; this.life-=this.decay;
+                if(this.type==='spark'){ this.vy+=0.5; if(this.y>vfx.height-10){this.y=vfx.height-10; this.vy*=-0.6;} }
             }
             draw(ctx) {
-                ctx.globalAlpha = Math.max(0, this.life);
-                ctx.fillStyle = this.color;
-                if(this.type === 'spark') {
-                    ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
-                } else if(this.type === 'shockwave') {
-                    ctx.strokeStyle = this.color; ctx.lineWidth = this.size;
-                    ctx.beginPath(); ctx.arc(this.x, this.y, (1-this.life)*500, 0, Math.PI*2); ctx.stroke();
-                }
+                ctx.globalAlpha=Math.max(0,this.life); ctx.fillStyle=ctx.strokeStyle=this.c;
+                if(this.type==='spark'){ ctx.beginPath(); ctx.arc(this.x,this.y,this.sz,0,Math.PI*2); ctx.fill(); }
+                else { ctx.lineWidth=this.sz; ctx.beginPath(); ctx.arc(this.x,this.y,(1-this.life)*500,0,Math.PI*2); ctx.stroke(); }
             }
         }
+        function spawnFX(x,y,c,amt,type='spark',spd=20) { for(let i=0; i<amt; i++) particles.push(new Particle(x,y,c,type,spd)); }
+        function loopFX() {
+            vCtx.clearRect(0,0,vfx.width,vfx.height);
+            for(let i=particles.length-1; i>=0; i--){ let p=particles[i]; p.update(); p.draw(vCtx); if(p.life<=0) particles.splice(i,1); }
+            requestAnimationFrame(loopFX);
+        }
+        loopFX();
 
-        function spawnExplosion(x, y, color, amount, type='spark', speed=20) {
-            for(let i=0; i<amount; i++) vfxParticles.push(new Particle(x, y, color, type, speed));
+        /* Toast Notifications */
+        function showToast(msg, isAlert=false) {
+            const c = document.getElementById('toast-container');
+            const d = document.createElement('div');
+            d.className = 'toast';
+            if(isAlert) { d.style.borderLeftColor = 'var(--c-red)'; d.style.color = 'var(--c-red)'; }
+            d.innerHTML = msg;
+            c.appendChild(d);
+            setTimeout(() => { d.style.animation = 'fadeOut 0.3s forwards'; setTimeout(()=>d.remove(), 300); }, 3000);
         }
 
-        function renderVFX() {
-            vfxCtx.clearRect(0, 0, vfxCanvas.width, vfxCanvas.height);
-            for(let i = vfxParticles.length - 1; i >= 0; i--) {
-                let p = vfxParticles[i];
-                p.update(); p.draw(vfxCtx);
-                if(p.life <= 0) vfxParticles.splice(i, 1);
+        /* ==========================================================================
+           [MAIN APPLICATION LOGIC]
+           ========================================================================== */
+        const App = {
+            agentId: "", coin: 10000,
+            stats: { baseAtk: 10, atkCost: 1500 },
+            inventory: [], // [{ id, qty }]
+            equippedItem: null,
+            
+            login: () => {
+                const id = document.getElementById('login-id').value.trim();
+                if(!id) return showToast("AGENT ID IS REQUIRED", true);
+                App.agentId = id.toUpperCase();
+                
+                document.getElementById('landing-view').style.opacity = '0';
+                AC.resume(); AudioSys.click();
+                
+                setTimeout(() => {
+                    document.getElementById('landing-view').style.display = 'none';
+                    document.getElementById('dashboard-view').style.display = 'flex';
+                    document.getElementById('hud-name').innerText = App.agentId;
+                    App.updateUI();
+                    showToast(`WELCOME TO THE APOCALYPSE, AGENT ${App.agentId}`);
+                }, 500);
+            },
+            
+            switchTab: (tab) => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                event.target.classList.add('active');
+                document.getElementById(`tab-${tab}`).classList.add('active');
+            },
+
+            updateUI: () => {
+                document.getElementById('hud-coin').innerText = App.coin.toLocaleString();
+                document.getElementById('stat-base-atk').innerText = App.stats.baseAtk;
+                document.getElementById('cost-atk').innerText = App.stats.atkCost;
+                
+                let wepAtk = App.equippedItem ? DB[App.equippedItem].atk : 0;
+                document.getElementById('stat-wep-atk').innerText = "+" + wepAtk;
+                document.getElementById('stat-total-atk').innerText = App.stats.baseAtk + wepAtk;
+            },
+
+            buyBaseAttack: () => {
+                if(App.coin < App.stats.atkCost) return showToast("NOT ENOUGH COINS", true);
+                App.coin -= App.stats.atkCost;
+                App.stats.baseAtk += 5;
+                App.stats.atkCost = Math.floor(App.stats.atkCost * 1.5);
+                AudioSys.equip();
+                showToast("BASE ATTACK UPGRADED!");
+                App.updateUI();
+            },
+
+            /* --- INVENTORY SYSTEM --- */
+            addItemToInv: (itemId) => {
+                const ex = App.inventory.find(i => i.id === itemId);
+                if(ex) ex.qty++; else App.inventory.push({ id: itemId, qty: 1 });
+                App.renderInventory();
+            },
+            
+            renderInventory: () => {
+                const grid = document.getElementById('inventory-grid');
+                const msg = document.getElementById('empty-inv-msg');
+                grid.innerHTML = '';
+                
+                if(App.inventory.length === 0) { msg.style.display = 'block'; return; }
+                msg.style.display = 'none';
+
+                // 정렬: 레어도 높은순 (SSR -> N)
+                const rankOrder = { 'SSR':4, 'SR':3, 'R':2, 'N':1 };
+                App.inventory.sort((a,b) => rankOrder[DB[b.id].rank] - rankOrder[DB[a.id].rank]);
+
+                App.inventory.forEach(item => {
+                    const data = DB[item.id];
+                    const div = document.createElement('div');
+                    div.className = `inv-item ${App.equippedItem === item.id ? 'equipped' : ''}`;
+                    div.style.borderColor = data.color;
+                    div.innerHTML = `
+                        ${renderPixelSVG(data)}
+                        <div class="item-qty">x${item.qty}</div>
+                    `;
+                    div.onclick = () => App.selectItem(item.id, div);
+                    grid.appendChild(div);
+                });
+            },
+
+            selectItem: (itemId, el) => {
+                const data = DB[itemId];
+                const view = document.getElementById('detail-view');
+                view.innerHTML = `
+                    <div class="detail-icon" style="filter:drop-shadow(0 0 10px ${data.color})">${renderPixelSVG(data)}</div>
+                    <div class="detail-title" style="color:${data.color}">[${data.rank}] ${data.name}</div>
+                    <div class="detail-stat">ATK POWER: +${data.atk}</div>
+                    <button class="btn-cyber" onclick="App.equipItem('${itemId}')">EQUIP WEAPON</button>
+                `;
+            },
+
+            equipItem: (itemId) => {
+                App.equippedItem = itemId;
+                AudioSys.equip();
+                showToast(`EQUIPPED: ${DB[itemId].name}`);
+                App.renderInventory(); // Update borders
+                App.updateUI();
             }
-            requestAnimationFrame(renderVFX);
-        }
-        renderVFX();
+        };
 
-        /* =========================================================
-           [가챠 시퀀스 제어기 (The Epic Gacha Sequence)]
-        ========================================================= */
-        const sleep = ms => new Promise(r => setTimeout(r, ms));
-        let isRolling = false;
+        /* ==========================================================================
+           [GACHA SYSTEM]
+           ========================================================================== */
+        App.Gacha = {
+            isRolling: false,
+            execute: async () => {
+                if(App.coin < 1000) return showToast("INSUFFICIENT COINS", true);
+                if(App.Gacha.isRolling) return;
+                App.Gacha.isRolling = true;
+                App.coin -= 1000; App.updateUI();
+                
+                const btn = document.getElementById('btn-pull'); const portal = document.getElementById('portal');
+                const itemBox = document.getElementById('roulette-item'); const nameBox = document.getElementById('item-name');
+                
+                btn.classList.add('disabled'); nameBox.style.opacity = '0'; itemBox.className = ''; itemBox.innerHTML = '';
 
-        async function executeEpicGacha() {
-            if(agentCoin < 1000) return alert('코인이 부족합니다.');
-            if(isRolling) return;
-            isRolling = true;
-            agentCoin -= 1000; updateUI();
-            
-            if(AC.state === 'suspended') AC.resume();
+                // 확률 계산
+                const pool = Object.values(DB);
+                let totalW = pool.reduce((s, i) => s + i.weight, 0);
+                let r = Math.random() * totalW;
+                let finalItem = pool[0];
+                for (let i of pool) { if (r < i.weight) { finalItem = i; break; } r -= i.weight; }
 
-            // UI 요소 가져오기
-            const btn = document.getElementById('btn-pull');
-            const portal = document.getElementById('portal');
-            const itemBox = document.getElementById('roulette-item');
-            const nameBox = document.getElementById('item-name');
-            
-            btn.classList.add('disabled');
-            nameBox.style.opacity = '0';
-            itemBox.className = '';
-            itemBox.innerHTML = '';
-            
-            // 기존의 자바스크립트 버그를 일으키던 라인을 안전하게 수정
-            document.body.style.backgroundColor = "#000000"; 
+                // [Phase 1] 박동
+                document.body.classList.add('shake-light');
+                AudioSys.heartbeat(); portal.className = 'portal-core active';
+                await new Promise(res=>setTimeout(res, 1500));
+                AudioSys.heartbeat(); await new Promise(res=>setTimeout(res, 1000));
 
-            // 결과 사전 계산 (행운 스탯 반영)
-            let pool = GACHA_POOL.map(i => {
-                let w = i.weight;
-                const r = PIXEL_MAP[i.id].rank;
-                if(r==='SR' || r==='SSR') w += w * (playerStats.luckBonus/100);
-                return { ...i, finalWeight: w };
-            });
-            let totalW = pool.reduce((s, i) => s + i.finalWeight, 0);
-            let r = Math.random() * totalW;
-            let resultData = pool[0];
-            for (let i of pool) { if (r < i.finalWeight) { resultData = i; break; } r -= i.finalWeight; }
-            const finalItem = PIXEL_MAP[resultData.id];
+                // [Phase 2] 폭주
+                document.body.classList.remove('shake-light'); document.body.classList.add('shake-heavy');
+                portal.className = 'portal-core furious'; AudioSys.riser(3.0);
+                itemBox.className = 'chaos-mode';
+                let chaosInt = setInterval(() => { itemBox.innerHTML = renderPixelSVG(pool[Math.floor(Math.random()*pool.length)]); }, 50);
+                await new Promise(res=>setTimeout(res, 3000)); clearInterval(chaosInt);
 
-            // ---------------- [PHASE 1: 심장 박동 & 포털 생성] ----------------
-            document.body.classList.add('shake-light');
-            SoundEngine.playHeartbeat();
-            portal.className = 'portal-core active';
-            
-            await sleep(1500); 
-            SoundEngine.playHeartbeat();
-            await sleep(1000);
+                // [Phase 3] 확정 섬광
+                document.body.classList.remove('shake-heavy'); portal.className = 'portal-core';
+                const flash = document.getElementById('flash-bang'); flash.style.opacity = '1'; AudioSys.explosion();
+                await new Promise(res=>setTimeout(res, 100));
+                
+                itemBox.innerHTML = renderPixelSVG(finalItem);
+                itemBox.className = `reveal-${finalItem.rank}`;
+                flash.style.opacity = '0'; flash.style.transition = 'opacity 2s';
 
-            // ---------------- [PHASE 2: 차원 폭주 & 실루엣 교차] ----------------
-            document.body.classList.remove('shake-light');
-            document.body.classList.add('shake-heavy');
-            portal.className = 'portal-core furious';
-            SoundEngine.playRiser(3.0); 
-            
-            itemBox.className = 'chaos-mode'; 
-            
-            let chaosInterval = setInterval(() => {
-                let randID = GACHA_POOL[Math.floor(Math.random()*GACHA_POOL.length)].id;
-                itemBox.innerHTML = renderPixelSVG(randID);
-            }, 50); 
+                // VFX
+                const cx = window.innerWidth/2, cy = window.innerHeight/2;
+                if(finalItem.rank==='SSR'){
+                    AudioSys.playEpicSSRChord();
+                    spawnFX(cx,cy,'#ffcc00',3,'shockwave',0); spawnFX(cx,cy,'#ffaa00',300,'spark',40);
+                } else if(finalItem.rank==='SR'){
+                    spawnFX(cx,cy,'#b300ff',1,'shockwave',0); spawnFX(cx,cy,'#ff00ff',150,'spark',30);
+                } else if(finalItem.rank==='R'){ spawnFX(cx,cy,'#00aaff',80,'spark',20);
+                } else { spawnFX(cx,cy,'#aaaaaa',30,'spark',15); }
 
-            await sleep(3000);
-            clearInterval(chaosInterval);
-
-            // ---------------- [PHASE 3: 붕괴 및 섬광 (Flashbang)] ----------------
-            document.body.classList.remove('shake-heavy');
-            portal.className = 'portal-core'; 
-            
-            const flash = document.getElementById('flash-bang');
-            flash.style.opacity = '1';
-            SoundEngine.playExplosion();
-            
-            await sleep(100); 
-            
-            itemBox.innerHTML = renderPixelSVG(resultData.id);
-            itemBox.className = `reveal-${finalItem.rank}`;
-            
-            flash.style.opacity = '0'; 
-            flash.style.transition = 'opacity 2s'; 
-            
-            // ---------------- [PHASE 4: 랭크별 이펙트 렌더링] ----------------
-            const cx = window.innerWidth / 2;
-            const cy = window.innerHeight / 2;
-
-            if(finalItem.rank === 'SSR') {
-                SoundEngine.playEpicSSRChord();
-                spawnExplosion(cx, cy, '#ffcc00', 3, 'shockwave', 0);
-                spawnExplosion(cx, cy, '#ffaa00', 300, 'spark', 40);
-                spawnExplosion(cx, cy, '#ffffff', 100, 'spark', 50);
-                document.body.style.backgroundColor = "#220000"; 
-            } else if (finalItem.rank === 'SR') {
-                spawnExplosion(cx, cy, '#b300ff', 1, 'shockwave', 0);
-                spawnExplosion(cx, cy, '#ff00ff', 150, 'spark', 30);
-            } else if (finalItem.rank === 'R') {
-                spawnExplosion(cx, cy, '#00aaff', 80, 'spark', 20);
-            } else {
-                spawnExplosion(cx, cy, '#aaaaaa', 30, 'spark', 15);
-            }
-
-            // ---------------- [PHASE 5: 글리치 텍스트 공개] ----------------
-            nameBox.style.opacity = '1';
-            nameBox.style.color = finalItem.color;
-            let glitchStr = "!@#$%^&*()_+<>?";
-            let currentText = "";
-            let revealIdx = 0;
-            const targetText = `[${finalItem.rank}] ${finalItem.name}`;
-            
-            let txtInterval = setInterval(() => {
-                currentText = "";
-                for(let i=0; i<targetText.length; i++) {
-                    if(i < revealIdx) currentText += targetText[i];
-                    else currentText += glitchStr[Math.floor(Math.random()*glitchStr.length)];
-                }
-                nameBox.innerText = currentText;
-                revealIdx += 0.5; 
-                if(revealIdx > targetText.length) {
-                    clearInterval(txtInterval);
-                    nameBox.innerText = targetText;
-                    
-                    if(conn && conn.open && ['SR','SSR'].includes(finalItem.rank)) {
-                        conn.send(`[SYSTEM ALERT] 요원 ${agentId} 가 [${finalItem.rank}] ${finalItem.name} 획득!!!`);
+                // 이름 글리치 공개
+                nameBox.style.opacity = '1'; nameBox.style.color = finalItem.color;
+                const targetText = `[${finalItem.rank}] ${finalItem.name}`;
+                let revIdx = 0;
+                let txtInt = setInterval(() => {
+                    let cur = "";
+                    for(let i=0; i<targetText.length; i++) {
+                        if(i<revIdx) cur+=targetText[i]; else cur+="!@#$%^&*"[Math.floor(Math.random()*8)];
                     }
-                    
-                    setTimeout(() => {
-                        btn.classList.remove('disabled');
-                        isRolling = false;
-                        flash.style.transition = 'opacity 0.1s'; 
-                        // 오류를 제거한 정상적인 백그라운드 원상복구
-                        document.body.style.backgroundColor = ""; 
-                    }, 1000);
-                }
-            }, 50);
-        }
-
-        /* =========================================================
-           [시스템 초기화 및 게임 로직 유지]
-        ========================================================= */
-        let agentId = "", agentCoin = 10000, shortCode = "", peer = null, conn = null;
-        const playerStats = { level: 1, attack: 10, luckBonus: 0, atkCost: 1500, luckCost: 3000 };
-
-        function processLogin() {
-            const input = document.getElementById('login-id');
-            if(!input.value.trim()) return alert('ID를 입력하십시오.');
-            agentId = input.value.trim().toUpperCase();
-            
-            document.getElementById('landing-view').style.opacity = '0';
-            AC.resume();
-            
-            setTimeout(() => {
-                document.getElementById('landing-view').style.display = 'none';
-                document.getElementById('dashboard-view').style.display = 'flex';
-                document.getElementById('hud-name').innerText = agentId;
-                updateUI(); initNetwork();
-            }, 500);
-        }
-
-        function updateUI() {
-            document.getElementById('hud-coin').innerText = agentCoin;
-            document.getElementById('stat-level').innerText = playerStats.level;
-            document.getElementById('stat-atk-val').innerText = playerStats.attack;
-            document.getElementById('stat-luck-val').innerText = playerStats.luckBonus;
-            document.getElementById('bar-atk').style.width = Math.min(100, playerStats.attack) + '%';
-            document.getElementById('bar-luck').style.width = Math.min(100, playerStats.luckBonus * 2) + '%';
-            document.getElementById('shop-atk-current').innerText = playerStats.attack;
-            document.getElementById('shop-luck-current').innerText = playerStats.luckBonus;
-            document.getElementById('cost-atk').innerText = playerStats.atkCost;
-            document.getElementById('cost-luck').innerText = playerStats.luckCost;
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-        }
-
-        function buyUpgrade(type) {
-            if(type === 'atk') {
-                if(agentCoin < playerStats.atkCost) return alert("코인 부족.");
-                agentCoin -= playerStats.atkCost; playerStats.attack += 5; playerStats.level++; playerStats.atkCost *= 1.5;
-            } else {
-                if(agentCoin < playerStats.luckCost) return alert("코인 부족.");
-                agentCoin -= playerStats.luckCost; playerStats.luckBonus += 5; playerStats.level++; playerStats.luckCost *= 2;
-            }
-            updateUI();
-        }
-
-        function initNetwork() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            for(let i=0; i<3; i++) shortCode += chars.charAt(Math.floor(Math.random() * chars.length));
-            document.getElementById('my-code').innerText = shortCode;
-            const url = window.location.origin + window.location.pathname + "?r=" + shortCode;
-            new QRCode(document.getElementById("qrcode"), { text: url, width: 120, height: 120 });
-        }
-
-        /* 미니게임 로직 */
-        const playCanvas = document.getElementById('play-canvas');
-        const playCtx = playCanvas.getContext('2d');
-        let gameInterval = null, targets = [], score = 0;
-
-        function startGame() {
-            if(gameInterval) clearInterval(gameInterval);
-            targets = []; score = 0; document.getElementById('score-display').innerText = score;
-            gameInterval = setInterval(() => {
-                targets.push({ x: Math.random()*(playCanvas.width-50), y: Math.random()*(playCanvas.height-50), size: 40, hp: 30, life: 100 });
-            }, 800);
-            gameLoop();
-        }
-
-        function gameLoop() {
-            if(!document.getElementById('tab-play').classList.contains('active')) return clearInterval(gameInterval);
-            playCtx.clearRect(0,0,playCanvas.width,playCanvas.height);
-            
-            playCtx.strokeStyle = '#220000'; playCtx.lineWidth = 1;
-            for(let i=0; i<playCanvas.width; i+=50) { playCtx.beginPath(); playCtx.moveTo(i,0); playCtx.lineTo(i,playCanvas.height); playCtx.stroke(); }
-            for(let j=0; j<playCanvas.height; j+=50) { playCtx.beginPath(); playCtx.moveTo(0,j); playCtx.lineTo(playCanvas.width,j); playCtx.stroke(); }
-
-            for(let i=targets.length-1; i>=0; i--) {
-                let t = targets[i]; t.life--;
-                if(t.life<=0) { targets.splice(i,1); continue; }
-                playCtx.fillStyle = t.life%10<5 ? '#f00' : '#a00';
-                playCtx.fillRect(t.x, t.y, t.size, t.size);
-                playCtx.fillStyle = '#ff0'; playCtx.fillRect(t.x+8, t.y+10, 8, 8); playCtx.fillRect(t.x+24, t.y+10, 8, 8);
-                playCtx.fillStyle = '#0f0'; playCtx.fillRect(t.x, t.y-10, (t.hp/30)*t.size, 5);
-            }
-            requestAnimationFrame(gameLoop);
-        }
-
-        playCanvas.addEventListener('mousedown', (e) => {
-            const r = playCanvas.getBoundingClientRect();
-            const mx = e.clientX - r.left, my = e.clientY - r.top;
-            SoundEngine.playGunshot();
-            
-            const rect = playCanvas.getBoundingClientRect();
-            spawnExplosion(rect.left + mx, rect.top + my, '#ffff00', 5, 'spark', 10);
-
-            for(let i=targets.length-1; i>=0; i--) {
-                let t = targets[i];
-                if(mx>t.x && mx<t.x+t.size && my>t.y && my<t.y+t.size) {
-                    t.hp -= playerStats.attack;
-                    if(t.hp<=0) {
-                        spawnExplosion(rect.left + t.x + 20, rect.top + t.y + 20, '#ff0000', 20, 'spark', 15);
-                        targets.splice(i,1); score++; agentCoin+=100; updateUI();
-                        document.getElementById('score-display').innerText = score;
+                    nameBox.innerText = cur; revIdx+=0.5;
+                    if(revIdx>targetText.length) {
+                        clearInterval(txtInt); nameBox.innerText = targetText;
+                        App.addItemToInv(finalItem.id); // 인벤토리에 추가!
+                        if(App.Network.conn && ['SR','SSR'].includes(finalItem.rank)) App.Network.conn.send(`[GLOBAL] ${App.agentId} ACQUIRED ${finalItem.name}!!`);
+                        
+                        setTimeout(() => {
+                            btn.classList.remove('disabled'); App.Gacha.isRolling=false; flash.style.transition='opacity 0.1s';
+                        }, 1000);
                     }
-                    break;
+                }, 50);
+            }
+        };
+
+        /* ==========================================================================
+           [NETWORK SYSTEM] PEER JS
+           ========================================================================== */
+        App.Network = {
+            peer: null, conn: null, code: "",
+            
+            genStr: () => {
+                const c='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let r='';
+                for(let i=0; i<3; i++) r+=c.charAt(Math.floor(Math.random()*c.length)); return r;
+            },
+            log: (msg, isSys) => {
+                const box = document.getElementById('chat-log');
+                box.innerHTML += `<div style="color:${isSys? 'var(--c-gold)' : 'var(--c-green)'}; margin-bottom:5px;">${msg}</div>`;
+                box.scrollTop = box.scrollHeight;
+            },
+            
+            hostRoom: () => {
+                document.getElementById('btn-host').style.display = 'none';
+                document.getElementById('host-info').style.display = 'block';
+                App.Network.code = App.Network.genStr();
+                document.getElementById('my-code').innerText = App.Network.code;
+                
+                const url = window.location.origin + window.location.pathname + "?r=" + App.Network.code;
+                new QRCode(document.getElementById("qrcode"), { text: url, width: 120, height: 120 });
+
+                App.Network.peer = new Peer("DOOM-APP-" + App.Network.code);
+                App.Network.peer.on('open', () => App.Network.log(`> SERVER OPEN. CODE: [ ${App.Network.code} ]`, true));
+                App.Network.peer.on('connection', c => {
+                    App.Network.conn = c; App.Network.setupConn();
+                    App.Network.log(`> AGENT JOINED YOUR SESSION.`, true); showToast("AGENT JOINED!");
+                });
+            },
+
+            joinRoom: () => {
+                const t = document.getElementById('target-code').value.toUpperCase();
+                if(t.length!==3) return showToast("INVALID CODE", true);
+                App.Network.log(`> CONNECTING TO [ ${t} ]...`, true);
+                if(!App.Network.peer) App.Network.peer = new Peer(); // 클라이언트는 임의 ID
+                
+                setTimeout(() => {
+                    App.Network.conn = App.Network.peer.connect("DOOM-APP-" + t);
+                    App.Network.setupConn();
+                }, 500);
+            },
+
+            setupConn: () => {
+                App.Network.conn.on('open', () => {
+                    document.getElementById('chat-input').disabled = false;
+                    document.getElementById('chat-btn').disabled = false;
+                    App.Network.log(`> UPLINK ESTABLISHED.`, true); showToast("UPLINK ESTABLISHED.");
+                });
+                App.Network.conn.on('data', d => App.Network.log(`[RECV] ${d}`, false));
+            },
+
+            sendChat: () => {
+                const input = document.getElementById('chat-input');
+                if(input.value && App.Network.conn) {
+                    App.Network.conn.send(`${App.agentId}: ${input.value}`);
+                    App.Network.log(`[ME] ${input.value}`, false);
+                    input.value = '';
                 }
             }
-        });
+        };
+
+        /* ==========================================================================
+           [COMBAT SYSTEM] MINIGAME ENGINE
+           ========================================================================== */
+        App.Combat = {
+            cvs: null, ctx: null, loopId: null, spawnerId: null,
+            targets: [], score: 0,
+            
+            init: () => {
+                App.Combat.cvs = document.getElementById('play-canvas');
+                App.Combat.ctx = App.Combat.cvs.getContext('2d');
+                App.Combat.cvs.addEventListener('mousedown', App.Combat.shoot);
+            },
+            
+            start: () => {
+                if(App.Combat.loopId) cancelAnimationFrame(App.Combat.loopId);
+                if(App.Combat.spawnerId) clearInterval(App.Combat.spawnerId);
+                
+                App.Combat.targets = []; App.Combat.score = 0; document.getElementById('score-display').innerText = 0;
+                
+                // 크로스헤어 색상 변경 (무기 장착 여부에 따라)
+                const wColor = App.equippedItem ? DB[App.equippedItem].color : '#fff';
+                App.Combat.cvs.style.borderColor = wColor;
+
+                App.Combat.spawnerId = setInterval(App.Combat.spawnEnemy, 1000);
+                App.Combat.loop();
+                showToast("MISSION STARTED. ELIMINATE ALL TARGETS.");
+            },
+            
+            spawnEnemy: () => {
+                const types = [
+                    { t: 'minion', hp: 50, color: '#ff003c', size: 40, pts: 1, spd: 1 },
+                    { t: 'brute', hp: 200, color: '#b300ff', size: 60, pts: 5, spd: 0.5 },
+                    { t: 'boss', hp: 1000, color: '#ffcc00', size: 100, pts: 50, spd: 0.2 }
+                ];
+                let type = types[0];
+                if(App.Combat.score > 10 && Math.random() < 0.3) type = types[1];
+                if(App.Combat.score > 30 && Math.random() < 0.1) type = types[2]; // 보스 등장
+
+                App.Combat.targets.push({
+                    x: Math.random()*(App.Combat.cvs.width-type.size), y: Math.random()*(App.Combat.cvs.height-type.size),
+                    ...type, maxHp: type.hp, life: 200 / type.spd // spd가 느릴수록 오래 존재
+                });
+            },
+
+            loop: () => {
+                if(!document.getElementById('tab-combat').classList.contains('active')) {
+                    clearInterval(App.Combat.spawnerId); return;
+                }
+                const ctx = App.Combat.ctx;
+                ctx.clearRect(0,0,App.Combat.cvs.width,App.Combat.cvs.height);
+                
+                // 배경 그리드 렌더링
+                ctx.strokeStyle = '#111'; ctx.lineWidth = 1;
+                for(let i=0; i<App.Combat.cvs.width; i+=40){ ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,App.Combat.cvs.height); ctx.stroke(); }
+                for(let j=0; j<App.Combat.cvs.height; j+=40){ ctx.beginPath(); ctx.moveTo(0,j); ctx.lineTo(App.Combat.cvs.width,j); ctx.stroke(); }
+
+                for(let i=App.Combat.targets.length-1; i>=0; i--) {
+                    let t = App.Combat.targets[i]; t.life--;
+                    if(t.life<=0) { App.Combat.targets.splice(i,1); continue; }
+                    
+                    // 몸체
+                    ctx.fillStyle = (t.life%10 < 5) ? t.color : '#333';
+                    ctx.fillRect(t.x, t.y, t.size, t.size);
+                    
+                    // 악마 눈 (글리치)
+                    ctx.fillStyle = '#fff';
+                    const eyeW = t.size/5;
+                    ctx.fillRect(t.x + eyeW, t.y + eyeW, eyeW, eyeW);
+                    ctx.fillRect(t.x + t.size - eyeW*2, t.y + eyeW, eyeW, eyeW);
+
+                    // 체력바
+                    ctx.fillStyle = '#000'; ctx.fillRect(t.x, t.y - 12, t.size, 8);
+                    ctx.fillStyle = t.color; ctx.fillRect(t.x, t.y - 12, (t.hp/t.maxHp)*t.size, 8);
+                }
+                App.Combat.loopId = requestAnimationFrame(App.Combat.loop);
+            },
+
+            shoot: (e) => {
+                const r = App.Combat.cvs.getBoundingClientRect();
+                const mx = e.clientX - r.left, my = e.clientY - r.top;
+                
+                // 장착 무기에 따른 사운드 및 데미지 계산
+                const wepRank = App.equippedItem ? DB[App.equippedItem].rank : 'N';
+                AudioSys.shoot(wepRank);
+
+                const dmg = App.stats.baseAtk + (App.equippedItem ? DB[App.equippedItem].atk : 0);
+                const color = App.equippedItem ? DB[App.equippedItem].color : '#fff';
+                
+                // 마우스 클릭 위치에 작은 폭발 파티클
+                spawnFX(r.left + mx, r.top + my, color, 5, 'spark', 15);
+
+                for(let i=App.Combat.targets.length-1; i>=0; i--) {
+                    let t = App.Combat.targets[i];
+                    if(mx>t.x && mx<t.x+t.size && my>t.y && my<t.y+t.size) {
+                        t.hp -= dmg;
+                        // 데미지 텍스트 팝업 (간이)
+                        spawnFX(r.left + t.x + t.size/2, r.top + t.y, '#fff', 2, 'spark', 5);
+
+                        if(t.hp<=0) {
+                            spawnFX(r.left + t.x + t.size/2, r.top + t.y + t.size/2, t.color, 30, 'spark', 20);
+                            App.Combat.score += t.pts;
+                            const earned = t.pts * 50;
+                            App.coin += earned; 
+                            App.updateUI();
+                            document.getElementById('score-display').innerText = App.Combat.score;
+                            
+                            if(t.t === 'boss') showToast(`BOSS DEFEATED! +${earned} COINS`, false);
+                            
+                            App.Combat.targets.splice(i,1);
+                        }
+                        break; // 관통 불가 (한 발당 하나)
+                    }
+                }
+            }
+        };
+
+        // 초기 설정 실행
+        App.Combat.init();
+        
+        // URL 파라미터 체크하여 바로 Join 룸 세팅
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('r')) {
+            document.getElementById('target-code').value = urlParams.get('r');
+        }
+
     </script>
 </body>
 </html>
